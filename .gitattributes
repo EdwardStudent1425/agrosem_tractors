@@ -1,0 +1,12 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+
+# Preserve CSV bytes, including original multiline column names and spaces.
+*.csv -text whitespace=-blank-at-eol
+*.xlsx binary
+*.docx binary
+*.pdf binary
+*.png binary
+*.gz binary

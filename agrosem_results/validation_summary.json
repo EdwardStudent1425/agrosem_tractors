@@ -1,0 +1,173 @@
+{
+  "status": "PASS",
+  "checks_n": 33,
+  "checks": [
+    {
+      "check": "Кількість і унікальність ключів",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Історія: 36 місяців у хронологічному порядку",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Порожні комірки продажів не стали нулями",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Порожні комірки хітів не стали нулями",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Повністю порожні ряди мають невідому річну суму",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Річні продажі",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Продажі за 36 місяців",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Поточний місяць відокремлено",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Пряма річна оцінка збігається з похідним полем",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Вартість залишку",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Граничний список",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Аномалії комірок",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Сегменти повністю покривають SKU",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Матриця ризиків не втрачає SKU",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "ABC/XYZ не втрачає SKU",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Попередні замовлення не підмінено новим ORDER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Довгий формат має унікальний ключ SKU-місяць",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "Довгий формат зберігає маску відсутності",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "XLSX: цілісність ZIP-контейнера",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "XLSX: 26 аркушів",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "XLSX: графік включено",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "XLSX: SKU-довідник відповідає CSV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "XLSX: прайсова оцінка залишку",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "XLSX: 13 398 історій і всі NaN збережено",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "XLSX: річні продажі",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "01_План_і_ролі.docx: цілісність",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "01_План_і_ролі.docx: очікувані ілюстрації",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "01_План_і_ролі.docx: український зміст і група B",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "02_Частина_1_аудит.docx: цілісність",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "02_Частина_1_аудит.docx: очікувані ілюстрації",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "02_Частина_1_аудит.docx: український зміст і група B",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "02_Частина_1_аудит.md: зображення charts/series_structure.png",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "check": "02_Частина_1_аудит.md: зображення charts/history_and_coverage.png",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "source_data_review_items": 3,
+  "note": "Перевірка експорту успішна. Три позначені питання первинних даних залишені на уточнення; це не збої експорту."
+}

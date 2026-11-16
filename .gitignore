@@ -1,0 +1,27 @@
+# Local Python environment and caches
+.task_deps/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Intermediate source inspection and local cache
+agrosem_results/source_cache.pkl
+agrosem_results/source_schema.json
+agrosem_results/audit_initial.json
+agrosem_results/case_extracted.txt
+agrosem_results/pasted_reference.txt
+inspect_sources.py
+audit_data.py
+
+# Code is maintained at repository root; these are archive copies
+agrosem_results/code/
+agrosem_results/package_manifest.json
+agrosem_results/*.zip
+regenerated_results/
+
+# Editor / spreadsheet temporary files
+.idea/
+.vscode/
+~$*
+*.tmp
