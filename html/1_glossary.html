@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Терміни й формули</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="glossary">
+<div id="top"></div>
+<main class="wrap">
+
+<h1>Терміни й формули</h1>
+<p class="lead">Найчастіше плутають три речі: <b>рівень сервісу</b>, <b>par level (цільовий запас)</b> і <b>COEFF</b>. Спочатку — як вони пов’язані, потім довідник і калькулятор формули кейсу.</p>
+
+<h2>Головне: від ймовірності до замовлення</h2>
+<div class="chain">
+  <div class="step"><b><span class="n">1</span>Рівень сервісу α</b>Ймовірність, що деталь буде на складі, коли її попросять. Напр. 0,95. Це <b>не</b> частка запасу.</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">2</span>Цільовий запас S (par level)</b>Скільки штук потрібно мати на початку періоду, щоб із ймовірністю α вистачило до наступної поставки.</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">3</span>COEFF</b>Те саме S, але виражене як частка річних продажів: <code>COEFF = S / SOLD</code>.</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">4</span>ORDER</b>Скільки замовити зараз: цільовий запас мінус те, що вже є.</div>
+</div>
+<div class="callout warn">
+  <p><b>Типова помилка:</b> «рівень сервісу 95% → COEFF = 0,95». Це неправильно. COEFF — це відношення запасу до річного попиту, і для 95% сервісу він може бути 0,3–0,6. Сервіс 95% означає лише <i>вибір точки на кривій попиту</i>, а COEFF — результат після підстановки конкретних продажів.</p>
+</div>
+
+<h3>Числовий приклад (рахується тут же)</h3>
+<p>Деталь продається <b>120 шт на рік</b> (10 на місяць). Замовляємо раз на місяць (<b>R = 1</b>), поставка через <b>L = 3</b> місяці (режим S3). Захищаємо період <b>L + R = 4 місяці</b>.</p>
+<div id="worked" class="card"></div>
+
+<h2>Довідник термінів</h2>
+<p class="small muted">Колонка «Звідки»: <span class="tag given">кейс</span> — є в PDF; <span class="tag data">дані</span> — є в Excel; <span class="tag assume">наше</span> — ми запроваджуємо термін для розрахунку.</p>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Термін</th><th>Що означає</th><th>Звідки</th></tr></thead>
+<tbody>
+<tr><td><b>SKU</b></td><td>Одна позиція номенклатури (одна запчастина). У групі B їх 13 398.</td><td><span class="tag data">дані</span></td></tr>
+<tr><td><b>SOLD</b></td><td>Кількість проданих одиниць. Оскільки COEFF — частка від <i>річного</i> замовлення, SOLD розуміємо як <b>річні продажі</b>.</td><td><span class="tag given">кейс</span> <span class="tag assume">наше прочитання</span></td></tr>
+<tr><td><b>STOCK</b></td><td>Наявність на складах (в Excel: «Доступний залишок»).</td><td><span class="tag given">кейс</span> <span class="tag data">дані</span></td></tr>
+<tr><td><b>RESERVE</b></td><td>Зарезервоване для клієнтів. Невідомо, чи «доступний залишок» уже без резерву (питання на 18.11).</td><td><span class="tag given">кейс</span> <span class="tag data">дані</span></td></tr>
+<tr><td><b>ORDERED</b></td><td>Раніше замовлене й ще не надійшло (в Excel: «В замовленні постачальника»).</td><td><span class="tag given">кейс</span> <span class="tag data">дані</span></td></tr>
+<tr><td><b>Inventory position (IP)</b></td><td>Усе, на що можна розраховувати: <code>STOCK − RESERVE + ORDERED</code>. Саме з IP порівнюють цільовий запас.</td><td><span class="tag given">кейс</span> (випливає з формули ORDER)</td></tr>
+<tr><td><b>ORDER</b></td><td>Обсяг замовлення за формулою кейсу: <code>SOLD × COEFF − STOCK + RESERVE − ORDERED</code>. Якщо вийшло від’ємне — нічого не замовляємо.</td><td><span class="tag given">кейс</span></td></tr>
+<tr><td><b>COEFF</b></td><td>Коригуючий коефіцієнт, 0…1: частка річного обсягу, яку тримаємо як цільовий запас на цей період. Змінюється по місяцях (сезонність).</td><td><span class="tag given">кейс</span></td></tr>
+<tr><td><b>Service level (рівень сервісу), α</b></td><td>Ймовірність наявності деталі на складі протягом періоду захисту. У завданні 2 її обирають зіставленням двох втрат.</td><td><span class="tag given">кейс</span></td></tr>
+<tr><td><b>Par level, S</b></td><td>Бажаний рівень запасу групи або позиції. У нашій моделі: S = квантиль α розподілу попиту за період L+R. Ціль, до якої «доливаємо» запас.</td><td><span class="tag given">кейс</span> <span class="tag assume">наше визначення</span></td></tr>
+<tr><td><b>Cu</b> (under-stock cost)</td><td>Втрата від <b>нестачі</b> однієї одиниці: втрачена маржа, термінова доставка, штраф, простій клієнта (якщо ми його враховуємо).</td><td><span class="tag assume">наше</span></td></tr>
+<tr><td><b>Co</b> (over-stock cost)</td><td>Втрата від <b>зайвої</b> одиниці за період: вартість заморожених грошей, зберігання, ризик не продати (із поправкою на можливість повернення).</td><td><span class="tag assume">наше</span></td></tr>
+<tr><td><b>α = Cu / (Cu + Co)</b></td><td>Класична формула «продавця газет». Дорогий дефіцит → α вище; дороге зберігання → α нижче. Вона не залежить від ціни, якщо Cu і Co пропорційні ціні.</td><td><span class="tag assume">наше</span></td></tr>
+<tr><td><b>L, R, L+R</b></td><td>L — час від замовлення до поставки; R — інтервал між переглядами (в кейсі щомісяця, R = 1). Запас має покрити попит за L+R.</td><td><span class="tag given">кейс</span> (R, S3); L для SY/S0 — <span class="tag ask">питання</span></td></tr>
+<tr><td><b>Safety stock</b></td><td>Страховий запас: те, що понад середній попит за L+R: <code>S − середній попит</code>.</td><td><span class="tag assume">наше</span></td></tr>
+<tr><td><b>Fill rate</b></td><td>Частка попиту, яку виконано зі складу. <b>Не те саме</b>, що α (імовірність не мати дефіциту взагалі).</td><td><span class="tag assume">наше</span></td></tr>
+<tr><td><b>Оборотність</b></td><td>Продажі / середньорічний запас. Ціль Агросем 3,5, у планах John Deere 2,5. Зі знімка складу фактичну оборотність не порахувати.</td><td><span class="tag given">кейс</span></td></tr>
+<tr><td><b>S3 / SY / S0</b></td><td>Режими замовлення: S3 — поставка через 3 місяці, знижка 14%; SY — щомісячне, знижка 10%; S0 — поточне. Альтернативи, а не 24% разом.</td><td><span class="tag given">кейс</span></td></tr>
+<tr><td><b>SALES / «Хіти»</b></td><td>У кейсі SALES — кількість клієнтів, що купили деталь. В Excel є лише «Хіти» за місяць, і що вони означають (клієнти, замовлення, рядки), невідомо.</td><td><span class="tag given">кейс</span> / <span class="tag data">дані</span> / <span class="tag ask">питання</span></td></tr>
+<tr><td><b>Критичність CC / IC</b></td><td>CC — чи зупиняє деталь машину (Додаток 3). IC — клас запасу за John Deere, критерії в кейсі не пояснено.</td><td><span class="tag given">кейс</span></td></tr>
+<tr><td><b>RET: R / E</b></td><td>R — можна повернути виробнику; E — не можна. В Excel: Retun / NO; відповідність R↔Retun, E↔NO — наше робоче припущення.</td><td><span class="tag given">кейс</span> <span class="tag assume">наше</span></td></tr>
+<tr><td><b>FY2025</b></td><td>Бюджетний рік John Deere та Агросем: 1.11.2024 – 31.10.2025. Горизонт нашого прогнозу.</td><td><span class="tag given">кейс</span></td></tr>
+<tr><td><b>Сезонний індекс</b></td><td>Місячний попит / середній місячний попит року. 1,8 означає: у цьому місяці продають у 1,8 раза більше за середній.</td><td><span class="tag assume">наше</span></td></tr>
+<tr><td><b>Стала когорта</b></td><td>8 295 позицій, які мають повні 36 місяців історії. Дає порівнянний склад, коли каталог зростає.</td><td><span class="tag assume">наше</span></td></tr>
+<tr><td><b>WAPE</b></td><td>Похибка прогнозу: сума |факт − прогноз| / сума факту. Для рядів з нулями безпечніша, ніж MAPE.</td><td><span class="tag assume">наше</span></td></tr>
+</tbody></table></div>
+
+<div class="tool">
+  <span class="tool-badge">Інструмент</span>
+  <h3>Калькулятор ORDER за формулою кейсу</h3>
+  <p class="small muted">Змініть числа й подивіться, що рахує формула. Усі поля — довільні приклади, не реальна деталь.</p>
+  <div class="controls">
+    <label class="field">SOLD, річні продажі<input id="o-sold" type="number" min="0" value="120"></label>
+    <label class="field">COEFF (0…1)<input id="o-coeff" type="number" min="0" max="1" step="0.01" value="0.5"></label>
+    <label class="field">STOCK<input id="o-stock" type="number" min="0" value="20"></label>
+    <label class="field">RESERVE<input id="o-res" type="number" min="0" value="5"></label>
+    <label class="field">ORDERED<input id="o-ord" type="number" min="0" value="10"></label>
+    <label class="field">PACK, шт в упаковці<input id="o-pack" type="number" min="1" value="1"></label>
+  </div>
+  <div id="o-out" class="card"></div>
+  <p class="small muted">Формула кейсу додає RESERVE, тобто вважає STOCK <i>валовим</i> (резерв ще не знято). Якщо «доступний залишок» в Excel уже очищено від резерву, резерв віднімати вдруге не можна, і формула дасть заниження. Це одне з питань на 18.11.</p>
+</div>
+
+<div id="pager"></div>
+</main>
+<script src="assets/stats.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function () {
+  /* Числовий приклад */
+  var D = 120, L = 3, R = 1, T = L + R, mu = D / 12 * T, sigma = 12, alpha = 0.95;
+  var z = Stats.invPhi(alpha), S = mu + z * sigma, coeff = S / D;
+  U.el('worked').innerHTML =
+    '<ol class="steps-list">' +
+    '<li>Середній попит за L+R: <b>' + U.fmt1(mu) + ' шт</b> (10 шт/міс × ' + T + ' міс).</li>' +
+    '<li>Невизначеність попиту за ці ' + T + ' місяці: стандартне відхилення σ = <b>' + sigma + ' шт</b> <span class="tag assume">припущення для прикладу</span>.</li>' +
+    '<li>Обрано рівень сервісу α = <b>' + U.pct(alpha) + '</b> → z = <b>' + U.fmt2(z) + '</b> (з таблиці нормального розподілу).</li>' +
+    '<li>Цільовий запас <b>S = ' + U.fmt1(mu) + ' + ' + U.fmt2(z) + ' × ' + sigma + ' = ' + U.fmt1(S) + ' шт</b>. Різниця S − середнє = ' + U.fmt1(S - mu) + ' шт — це страховий запас.</li>' +
+    '<li><b>COEFF = S / SOLD = ' + U.fmt1(S) + ' / ' + D + ' = ' + U.fmt2(coeff) + '</b>. Тобто для α = 95% COEFF ≈ ' + U.fmt2(coeff) + ', а не 0,95.</li>' +
+    '</ol>' +
+    '<p class="small muted">Без страхового запасу було б 4/12 ≈ 0,33: просто чверть року попиту. Решта — плата за впевненість.</p>';
+
+  /* Калькулятор ORDER */
+  function num(id) { var v = parseFloat(U.el(id).value); return isNaN(v) ? 0 : v; }
+  function calc() {
+    var sold = num('o-sold'), c = Math.min(1, Math.max(0, num('o-coeff'))), st = num('o-stock'), rs = num('o-res'), od = num('o-ord'), pk = Math.max(1, num('o-pack'));
+    var target = sold * c, raw = target - st + rs - od, ord = Math.max(0, raw), packed = Math.ceil(ord / pk - 1e-9) * pk;
+    var ipFree = st + od, ipGross = st - rs + od;
+    var h = '<div class="grid g4">' +
+      '<div class="kpi"><div class="v">' + U.fmt1(target) + '</div><div class="l">цільовий запас SOLD × COEFF</div></div>' +
+      '<div class="kpi"><div class="v">' + U.fmt1(ipGross) + '</div><div class="l">STOCK − RESERVE + ORDERED</div></div>' +
+      '<div class="kpi"><div class="v">' + U.fmt1(raw) + '</div><div class="l">ORDER за формулою</div></div>' +
+      '<div class="kpi"><div class="v">' + U.fmtInt(packed) + '</div><div class="l">до замовлення (≥ 0, кратно упаковці)</div></div></div>';
+    if (raw < 0) h += '<p class="small">ORDER від’ємний: запасу вже більше, ніж потрібно (надлишок ≈ ' + U.fmt1(-raw) + ' шт). Замовляти нічого не треба; повертати чи ні — окреме рішення, залежить від RET.</p>';
+    if (rs > st) h += '<p class="small"><b>Увага:</b> RESERVE більший за STOCK. Це якраз випадок, коли «доступний залишок» імовірно вже без резерву (на 72 позиціях тракторів так і є).</p>';
+    h += '<p class="small muted">Якщо STOCK уже вільний від резерву: позиція запасу = ' + U.fmt1(ipFree) + ', ORDER = ' + U.fmt1(Math.max(0, target - ipFree)) + '.</p>';
+    U.el('o-out').innerHTML = h;
+  }
+  ['o-sold', 'o-coeff', 'o-stock', 'o-res', 'o-ord', 'o-pack'].forEach(function (id) { U.el(id).addEventListener('input', calc); });
+  calc();
+})();
+</script>
+</body>
+</html>

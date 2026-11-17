@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Агросем: карта проєкту</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="index">
+<div id="top"></div>
+<main class="wrap">
+
+<h1>Агросем · запчастини до тракторів (група B)</h1>
+<p class="lead">Одна карта замість купи файлів: що від нас хочуть, звідки беруться числа, у якому порядку працювати.</p>
+
+<div class="hero">
+  <b>Наше завдання одним реченням.</b>
+  Для запчастин до тракторів (група B): спрогнозувати попит на бюджетний рік FY2025 з урахуванням сезонності;
+  обрати цільовий рівень сервісу, порівнявши втрати від дефіциту й від зайвого запасу, і перетворити його на
+  цільовий запас та коригуючий коефіцієнт COEFF; потім порівняти це з фактичними залишками й порекомендувати
+  сценарії рівня запасів, які вкладаються у бюджет 3,5 оберту запасів на рік.
+</div>
+
+<h2>Як три завдання кейсу пов’язані між собою</h2>
+<p>Це <b>один ланцюжок</b>, а не три окремі задачі. Результат кожного кроку — вхід наступного.</p>
+<div class="chain">
+  <div class="step"><b><span class="n">1</span>Прогноз і сезонність <span class="tag pts">10 балів</span></b>Скільки і коли купуватимуть. Дає попит на період «доставка + перегляд».</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">2</span>Сервіс і COEFF <span class="tag pts">10 балів</span></b>Яку ймовірність наявності деталі ми хочемо. Дає цільовий запас S і COEFF = S / річний попит.</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">3</span>Факт і сценарії <span class="tag pts">10 балів</span></b>Порівняти розрахунок із залишками та замовленим. Три сценарії запасів у межах бюджету.</div>
+</div>
+
+<h2>Ключові числа з даних</h2>
+<div class="grid g4">
+  <div class="card kpi"><div class="v" data-sum="sku_n"></div><div class="l">позицій у групі «Трактори» з 32 864 у каталозі</div></div>
+  <div class="card kpi"><div class="v" data-sum="sold12_u"></div><div class="l">одиниць продано за 12 повних місяців (лис. 2023 — жов. 2024)</div></div>
+  <div class="card kpi"><div class="v">лют–бер</div><div class="l">піки сезонності: щороку 3-річної історії</div></div>
+  <div class="card kpi"><div class="v">3,5 vs 2,5</div><div class="l">оберти запасів: ціль Агросем проти планування John Deere <span class="tag given">кейс</span></div></div>
+</div>
+
+<h2>Куди йти далі</h2>
+<div class="grid g3">
+  <a class="card" href="1_case.html"><span class="tag given">1 Зрозуміти</span><h3>Кейс за 5 хвилин</h3>
+    <p class="small">Компанія, процес замовлення, формула ORDER, обмеження. Читати першим.</p></a>
+  <a class="card" href="1_glossary.html"><span class="tag given">1 Зрозуміти</span><h3>Терміни й формули</h3>
+    <p class="small">SOLD, COEFF, CC, S3/SY, service level, par level. Із прикладом розрахунку ORDER.</p></a>
+  <a class="card" href="1_questions.html"><span class="tag ask">1 Зрозуміти</span><h3>Питання на 18 листопада</h3>
+    <p class="small">Що кейс не каже, чому це важливо й що припускаємо, якщо відповіді немає.</p></a>
+  <a class="card" href="2_data.html"><span class="tag data">2 Дані</span><h3>Дані та пошук запчастин</h3>
+    <p class="small">Що в Excel, як читати стовпці, застереження. Інструмент: фільтр 13 398 позицій.</p></a>
+  <a class="card" href="3a_seasonality.html"><span class="tag data">3 Рахувати · завдання 1</span><h3>Сезонність і прогноз</h3>
+    <p class="small">Інструмент: графіки 36 місяців, сезонні індекси, прогноз FY2025 із перевіркою на минулому.</p></a>
+  <a class="card" href="3b_service_coeff.html"><span class="tag data">3 Рахувати · завдання 2</span><h3>Сервіс і COEFF</h3>
+    <p class="small">Інструмент: від вартості дефіциту до COEFF по місяцях. Правило для 519 «граничних» позицій.</p></a>
+  <a class="card" href="3c_scenarios.html"><span class="tag data">3 Рахувати · завдання 3</span><h3>Сценарії та бюджет</h3>
+    <p class="small">Інструмент: три сценарії запасів проти бюджету 3,5 оберту, із симульованим сервісом.</p></a>
+  <a class="card" href="4_deliverables.html"><span class="tag pts">4 Здати</span><h3>Що здаємо і як</h3>
+    <p class="small">Окремо: що готуємо на 18 листопада (питання) і на 2 грудня (30 балів, слайди, пілот).</p></a>
+</div>
+
+<h2>Як читати мітки на сторінках</h2>
+<div class="grid g3">
+  <div class="callout given"><span class="tag given">кейс</span> Факт, узятий із PDF кейсу. Можна цитувати, на сторінці вказано розділ.</div>
+  <div class="callout assume"><span class="tag assume">припущення</span> Наше робоче припущення. У кейсі цього немає, його можна змінити в полях інструментів.</div>
+  <div class="callout ask"><span class="tag ask">питання</span> Те, що треба уточнити в викладача. Зібрано на сторінці «Питання на 18.11».</div>
+</div>
+
+<h2>Терміни</h2>
+<ul>
+  <li><b>18 листопада</b> — внутрішнє представлення: наші запитання та запити на додаткову інформацію.</li>
+  <li><b>2 грудня</b> — фінальне представлення проєкту.</li>
+  <li>Дані — знімок складу <b>12.11.2024</b>. Усі розрахунки — навчальна задача на цих даних, а не на поточній даті.</li>
+</ul>
+
+<h2>Звідки взято числа</h2>
+<p>Усі числа на цих сторінках сформовано з оригінального Excel (<code>inputs/12_11_2024_140029.xlsx</code>)
+  скриптом <code>html/build_html_data.py</code>. Скрипт використовує код колеги (<code>build_data</code>), але не читає його готових
+  результатів, і зупиняється, якщо контрольні суми не збігаються.</p>
+
+<div id="pager"></div>
+</main>
+<script src="data/summary.js"></script>
+<script src="assets/common.js"></script>
+</body>
+</html>

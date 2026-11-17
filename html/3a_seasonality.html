@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Завдання 1: сезонність і прогноз</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="seasonality">
+<div id="top"></div>
+<main class="wrap">
+
+<h1>Завдання 1 · Сезонність і прогноз попиту <span class="tag pts">10 балів</span></h1>
+<p class="lead">«Проаналізувати сезонність попиту … Оцініть прогнозне значення попиту для номенклатурної групи» (с. 5 кейсу). Для нас: <b>трактори, B</b>.</p>
+
+<h2>Що потрібно зробити</h2>
+<ol class="steps-list">
+  <li><b>Подивитися історію:</b> 36 повних місяців продажів (листопад 2021 — жовтень 2024), по групі, серіях і критичності CC.</li>
+  <li><b>Відокремити ріст каталогу від росту попиту:</b> порівняти всі позиції зі сталою когортою з повною історією.</li>
+  <li><b>Порахувати сезонні індекси:</b> у скільки разів місяць перевищує середній місяць року, усереднивши бюджетні роки.</li>
+  <li><b>Спрогнозувати FY2025</b> (листопад 2024 — жовтень 2025): рівень року × сезонний індекс місяця.</li>
+  <li><b>Перевірити прогноз на минулому:</b> прогнозувати FY2024 лише за даними до нього й порахувати похибку.</li>
+</ol>
+
+<div class="callout assume">
+  <p><span class="tag assume">що передаємо далі</span> Завдання 2 потребує <b>попит за період L+R</b> (від замовлення до наступної поставки). Його дають саме сезонні індекси: замовлення в січні захищає лютий — березень, тож потрібен більший запас. Див. <a href="3b_service_coeff.html">завдання 2</a>.</p>
+</div>
+
+<div class="tool">
+  <span class="tool-badge">Інструмент 1</span>
+  <h3>Дослідник сезонності</h3>
+  <div class="controls">
+    <label class="field">Що показувати<select id="dim"></select></label>
+    <div class="field">Вигляд
+      <div class="seg" id="view">
+        <button data-v="line" class="on">36 місяців</button>
+        <button data-v="overlay">Роки поверх</button>
+        <button data-v="index">Сезонні індекси</button>
+      </div></div>
+  </div>
+  <div id="chart1"></div>
+  <div id="facts" class="grid g3"></div>
+  <p class="small muted" id="chart1-note"></p>
+</div>
+
+<h2>Що видно з графіків</h2>
+<ul id="insights"></ul>
+
+<div class="callout warn">
+  <b>Обережно з висновками.</b> Це лише 3 бюджетні роки, тобто по 3 спостереження на кожен місяць. Індекс одного місяця може «стрибати» (лютий і березень міняються місцями: у FY2022 піком був лютий, у FY2023 — березень). Надійніше говорити про <b>лютий + березень разом</b> або про «зимово-весняний сезон».
+  Ще до сезонності додається <b>тренд</b>: річні продажі зростають, і частину росту дає розширення каталогу, а не попит. Тому порівнюємо також сталу когорту.
+</div>
+
+<h2>Серії: де сезонність найсильніша</h2>
+<div class="tbl-wrap"><table id="series-seas">
+<thead><tr><th>Серія</th><th class="num">Продано FY2024, од.</th><th class="num">Лют + бер, частка року</th><th class="num">Пік (середній індекс)</th></tr></thead><tbody></tbody></table></div>
+<p class="small muted">Якщо все було б рівномірно, лютий + березень становили б 16,7% року (2 з 12 місяців). Малі серії (9-ї, 7-ї, «інші») продають десятки або сотні одиниць на рік, тому їхні індекси дуже шумні, і робити з них висновки не можна.</p>
+
+<div class="tool">
+  <span class="tool-badge">Інструмент 2</span>
+  <h3>Прогноз FY2025 і перевірка на минулому</h3>
+  <p>Модель: <code>прогноз місяця = рівень року × індекс місяця / 12</code>. Рівень наступного року = попередній рік × (1 + ріст). Ріст — головне припущення; його кейс не задає.</p>
+  <div class="controls">
+    <label class="field">Основа індексів
+      <select id="fbase"><option value="all">усі позиції</option><option value="cohort">стала когорта (8 295)</option></select></label>
+    <label class="field">Ріст рівня року, % <span class="tag assume">припущення</span>
+      <input id="fg" type="range" min="-10" max="40" step="1" value="10"><span id="fgv" class="small"></span></label>
+  </div>
+  <div id="growth" class="callout"></div>
+
+  <h4>Перевірка: прогноз FY2024, зроблений лише за FY2022–FY2023</h4>
+  <div id="chart-bt"></div>
+  <div id="bt-res" class="grid g3"></div>
+
+  <h4>Прогноз FY2025</h4>
+  <div id="chart-fc"></div>
+  <div class="tbl-wrap"><table id="fc-table"><thead></thead><tbody></tbody></table></div>
+  <p class="small muted" id="fc-note"></p>
+</div>
+
+<h2>Результат, який потрібно здати</h2>
+<div class="grid g2">
+  <div class="card"><h3>Мінімум для оцінки</h3>
+    <ul>
+      <li>Графік 36 місяців і висновок про сезонність (піки, провали).</li>
+      <li>Сезонні індекси групи (і за серіями, якщо потрібно).</li>
+      <li>Прогноз FY2025 по місяцях і сума за рік.</li>
+      <li>Прозоре припущення про ріст і похибка перевірки на минулому.</li>
+    </ul></div>
+  <div class="card"><h3>Що пояснити словами</h3>
+    <ul>
+      <li>Чому саме лютий — березень: підготовка до сівби (гіпотеза, її треба підтвердити, а не стверджувати).</li>
+      <li>Скільки росту — це нові позиції, а скільки — попит.</li>
+      <li>Чому прогноз для окремої позиції ненадійний: понад 90% позицій з продажами нерегулярні (клас Z), тому ми прогнозуємо групу й серії.</li>
+    </ul></div>
+</div>
+
+<div id="pager"></div>
+</main>
+<script src="data/summary.js"></script>
+<script src="data/monthly.js"></script>
+<script src="assets/charts.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function () {
+  var M = AGRO.monthly, MN = ['лис', 'гру', 'січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов'];
+  var FYS = ['FY2022', 'FY2023', 'FY2024'];
+  var fmt = U.fmtInt;
+
+  function sum(a) { return a.reduce(function (x, y) { return x + y; }, 0); }
+  function fyOf(v, k) { return v.slice(k * 12, k * 12 + 12); }
+  function seasonal(v) {
+    var per = [0, 1, 2].map(function (k) { var a = fyOf(v, k), m = sum(a) / 12; return a.map(function (x) { return x / m; }); });
+    var mean = MN.map(function (_, i) { return (per[0][i] + per[1][i] + per[2][i]) / 3; });
+    return { per: per, mean: mean };
+  }
+  function r2(x) { return Math.round(x * 100) / 100; }
+
+  /* варіанти вибору */
+  var dimSel = U.el('dim'), opts = [['all', 'Усі позиції B'], ['cohort', 'Стала когорта (8 295 позицій з повною історією)']];
+  Object.keys(M.by_series).forEach(function (s) { opts.push(['s:' + s, 'Серія: ' + s]); });
+  Object.keys(M.by_cc).forEach(function (c) { if (M.cc_sku_n[c] >= 100) opts.push(['c:' + c, 'CC ' + c + (U.CC[c] ? ' · ' + U.CC[c][0] : '')]); });
+  dimSel.innerHTML = opts.map(function (o) { return '<option value="' + U.esc(o[0]) + '">' + U.esc(o[1]) + '</option>'; }).join('');
+  function seriesFor(key) {
+    if (key === 'all') return M.all; if (key === 'cohort') return M.cohort;
+    if (key.indexOf('s:') === 0) return M.by_series[key.slice(2)];
+    return M.by_cc[key.slice(2)];
+  }
+
+  var view = 'line';
+  function draw1() {
+    var key = dimSel.value, v = seriesFor(key), el = U.el('chart1'), S = seasonal(v);
+    var labels = M.months.map(U.monthLabel), note = '';
+    if (view === 'line') {
+      var series = [{ name: dimSel.options[dimSel.selectedIndex].text, values: v, color: '--c1' }];
+      if (key === 'all') series.push({ name: 'Стала когорта (8 295 позицій)', values: M.cohort, color: '--c2', dash: true });
+      var shade = []; [0, 1, 2].forEach(function (k) { shade.push([k * 12 + 3, k * 12 + 4]); });
+      Charts.line(el, { labels: labels, series: series, yFormat: fmt, yTitle: 'од. на місяць', height: 330, shade: shade, xRotate: true, maxXLabels: 18 });
+      note = 'Жовтим підсвічено лютий–березень кожного бюджетного року. Для «усіх позицій» пунктир — стала когорта: різниця між лініями показує вплив появи нових позицій у каталозі.';
+    } else if (view === 'overlay') {
+      var cols = ['--c6', '--c2', '--c1'];
+      Charts.line(el, { labels: MN, series: FYS.map(function (n, k) { return { name: n + ' (' + fmt(sum(fyOf(v, k))) + ' од.)', values: fyOf(v, k), color: cols[k] }; }),
+        yFormat: fmt, yTitle: 'од. на місяць', height: 330 });
+      note = 'Бюджетний рік починається в листопаді. Лінії одного й того ж місяця різних років зіставляють рівні: зростання між роками видно за різницею висоти ліній.';
+    } else {
+      var cols2 = ['--c6', '--c2', '--c1'];
+      var ser = FYS.map(function (n, k) { return { name: n, values: S.per[k].map(r2), color: cols2[k], width: 1.4 }; });
+      ser.push({ name: 'Середній індекс', values: S.mean.map(r2), color: '--c5', width: 3.2 });
+      Charts.line(el, { labels: MN, series: ser, yFormat: function (x) { return U.fmt2(x); }, yTitle: 'індекс', height: 330, refY: 1 });
+      note = 'Індекс 1,0 = середній місяць року (пунктир). Індекс 1,8 означає «у 1,8 раза більше за середній місяць». Середнє 12 індексів кожного року дорівнює 1.';
+    }
+    U.el('chart1-note').textContent = note;
+    var tot = FYS.map(function (_, k) { return sum(fyOf(v, k)); });
+    var top = S.mean.map(function (x, i) { return [x, i]; }).sort(function (a, b) { return b[0] - a[0]; });
+    var fm = (S.mean[3] + S.mean[4]) / 12;
+    U.el('facts').innerHTML =
+      '<div class="card kpi"><div class="v">' + MN[top[0][1]] + ' · ' + U.fmt2(top[0][0]) + '</div><div class="l">найвищий середній індекс (потім ' + MN[top[1][1]] + ' · ' + U.fmt2(top[1][0]) + ')</div></div>' +
+      '<div class="card kpi"><div class="v">' + U.pct(fm, 1) + '</div><div class="l">частка лютого й березня в річних продажах (рівномірно було б 16,7%)</div></div>' +
+      '<div class="card kpi"><div class="v">' + (tot[0] > 0 ? '+' + U.pct(tot[2] / tot[0] - 1, 0) : '—') + '</div><div class="l">зміна FY2022 → FY2024 (' + fmt(tot[0]) + ' → ' + fmt(tot[2]) + ' од.)</div></div>';
+  }
+  U.el('view').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    view = b.getAttribute('data-v');
+    Array.prototype.forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); });
+    draw1();
+  });
+  dimSel.addEventListener('input', draw1);
+
+  /* висновки */
+  var A = seasonal(M.all), Cc = seasonal(M.cohort);
+  var gAll = [sum(fyOf(M.all, 1)) / sum(fyOf(M.all, 0)) - 1, sum(fyOf(M.all, 2)) / sum(fyOf(M.all, 1)) - 1];
+  var gCo = [sum(fyOf(M.cohort, 1)) / sum(fyOf(M.cohort, 0)) - 1, sum(fyOf(M.cohort, 2)) / sum(fyOf(M.cohort, 1)) - 1];
+  U.el('insights').innerHTML =
+    '<li><b>Є стійкий зимово-весняний пік.</b> Лютий + березень = ' + U.pct((A.mean[3] + A.mean[4]) / 12, 0) + ' річних продажів (усі позиції) за середнім із трьох років. Січень теж вище середнього (' + U.fmt2(A.mean[2]) + '), а грудень — найслабший місяць (' + U.fmt2(A.mean[1]) + ').</li>' +
+    '<li><b>Попит росте.</b> Річні продажі: ' + fmt(sum(fyOf(M.all, 0))) + ' → ' + fmt(sum(fyOf(M.all, 1))) + ' → ' + fmt(sum(fyOf(M.all, 2))) + ' од. (' + U.pct(gAll[0], 0) + ' і ' + U.pct(gAll[1], 0) + ' на рік).</li>' +
+    '<li><b>Це не лише нові позиції.</b> На сталій когорті 8 295 позицій зростання майже таке саме: ' + U.pct(gCo[0], 0) + ' і ' + U.pct(gCo[1], 0) + '. Ріст каталогу пояснює меншу частину, але когорта не гарантує однакової активності товарів.</li>' +
+    '<li><b>Сезонні індекси майже однакові</b> для всіх позицій і для когорти (лютий: ' + U.fmt2(A.mean[3]) + ' проти ' + U.fmt2(Cc.mean[3]) + '). Отже, сезонність не артефакт зміни асортименту.</li>';
+
+  /* таблиця серій */
+  var tb = document.querySelector('#series-seas tbody'), rows = [];
+  Object.keys(M.by_series).forEach(function (s) {
+    var v = M.by_series[s], f = seasonal(v), y = fyOf(v, 2), top = f.mean.indexOf(Math.max.apply(null, f.mean));
+    rows.push([s, sum(y), sum(y) > 0 ? (y[3] + y[4]) / sum(y) : null, MN[top] + ' · ' + U.fmt2(f.mean[top])]);
+  });
+  rows.sort(function (a, b) { return b[1] - a[1]; });
+  tb.innerHTML = rows.map(function (r) { return '<tr><td>' + U.esc(r[0]) + '</td><td class="num">' + fmt(r[1]) + '</td><td class="num">' + (r[2] == null ? '—' : U.pct(r[2], 1)) + '</td><td class="num">' + r[3] + '</td></tr>'; }).join('');
+
+  /* прогноз та перевірка */
+  function wape(act, fc) { var e = 0, s = 0; act.forEach(function (a, i) { e += Math.abs(a - fc[i]); s += a; }); return e / s; }
+  function drawForecast() {
+    var base = U.el('fbase').value, v = base === 'cohort' ? M.cohort : M.all, g = parseInt(U.el('fg').value, 10) / 100;
+    U.el('fgv').textContent = ' ' + (g >= 0 ? '+' : '') + Math.round(g * 100) + '%';
+    var y = [fyOf(v, 0), fyOf(v, 1), fyOf(v, 2)], tot = y.map(sum);
+    var hist = [tot[1] / tot[0] - 1, tot[2] / tot[1] - 1];
+    U.el('growth').className = 'callout ' + (Math.abs(g - (hist[0] + hist[1]) / 2) > .15 ? 'warn' : 'assume');
+    U.el('growth').innerHTML = '<b>Історичний ріст рівня:</b> FY2023/FY2022 = ' + U.pct(hist[0], 1) + ', FY2024/FY2023 = ' + U.pct(hist[1], 1) +
+      '. Ви обрали ' + (g >= 0 ? '+' : '') + Math.round(g * 100) + '%. Прогноз дуже чутливий до цього числа, тож його треба обґрунтувати (обсяг техніки, парк, плани продажів John Deere).';
+
+    /* перевірка: індекси лише з FY2022–FY2023, рівень FY2023 × (1+g) */
+    var idx = MN.map(function (_, i) { return (y[0][i] / (tot[0] / 12) + y[1][i] / (tot[1] / 12)) / 2; });
+    var modelBt = idx.map(function (x) { return tot[1] * (1 + g) * x / 12; });
+    var naiveBt = y[1].map(function (x) { return x * (1 + g); });
+    var wm = wape(y[2], modelBt), wn = wape(y[2], naiveBt);
+    var totErr = (sum(modelBt) - tot[2]) / tot[2];
+    Charts.line(U.el('chart-bt'), { labels: MN, yFormat: fmt, yTitle: 'од. на місяць', height: 290,
+      series: [{ name: 'Факт FY2024', values: y[2], color: '--c1' }, { name: 'Прогноз моделі (індекс × рівень)', values: modelBt.map(Math.round), color: '--c5', dash: true },
+        { name: 'Базовий: той самий місяць торік × (1 + ріст)', values: naiveBt.map(Math.round), color: '--c6', dash: true }] });
+    U.el('bt-res').innerHTML =
+      '<div class="card kpi"><div class="v">' + U.pct(wm, 0) + '</div><div class="l">WAPE моделі (похибка по місяцях)</div></div>' +
+      '<div class="card kpi"><div class="v">' + U.pct(wn, 0) + '</div><div class="l">WAPE базового методу «торік × (1 + ріст)»</div></div>' +
+      '<div class="card kpi"><div class="v">' + (totErr >= 0 ? '+' : '') + U.pct(totErr, 0) + '</div><div class="l">помилка прогнозу річної суми FY2024 за обраного росту</div></div>';
+
+    /* прогноз FY2025: індекси з усіх трьох років */
+    var S = seasonal(v), level = tot[2] * (1 + g), fc = S.mean.map(function (x) { return level * x / 12; });
+    var low = fc.map(function (x) { return x * (1 - wm); }), high = fc.map(function (x) { return x * (1 + wm); });
+    Charts.line(U.el('chart-fc'), { labels: MN, yFormat: fmt, yTitle: 'од. на місяць', height: 300,
+      series: [{ name: 'Факт FY2024', values: y[2], color: '--c6' }, { name: 'Прогноз FY2025', values: fc.map(Math.round), color: '--c1', width: 3 },
+        { name: 'Нижня межа (− WAPE перевірки)', values: low.map(Math.round), color: '--c3', dash: true }, { name: 'Верхня межа (+ WAPE)', values: high.map(Math.round), color: '--c3', dash: true }] });
+    document.querySelector('#fc-table thead').innerHTML = '<tr><th></th>' + MN.map(function (m) { return '<th class="num">' + m + '</th>'; }).join('') + '<th class="num">Рік</th></tr>';
+    document.querySelector('#fc-table tbody').innerHTML =
+      '<tr><td>Індекс</td>' + S.mean.map(function (x) { return '<td class="num">' + U.fmt2(x) + '</td>'; }).join('') + '<td class="num">' + U.fmt2(sum(S.mean) / 12) + '</td></tr>' +
+      '<tr><td>Факт FY2024</td>' + y[2].map(function (x) { return '<td class="num">' + fmt(x) + '</td>'; }).join('') + '<td class="num"><b>' + fmt(tot[2]) + '</b></td></tr>' +
+      '<tr class="sel"><td><b>Прогноз FY2025</b></td>' + fc.map(function (x) { return '<td class="num"><b>' + fmt(x) + '</b></td>'; }).join('') + '<td class="num"><b>' + fmt(level) + '</b></td></tr>';
+    U.el('fc-note').textContent = 'Місяці йдуть у порядку бюджетного року: листопад → жовтень. Межі — це лише ± похибка, виміряна перевіркою на FY2024 (одна точка перевірки, тож це грубий орієнтир, а не статистичний інтервал).';
+  }
+  U.el('fbase').addEventListener('input', drawForecast); U.el('fg').addEventListener('input', drawForecast);
+
+  draw1(); drawForecast();
+})();
+</script>
+</body>
+</html>

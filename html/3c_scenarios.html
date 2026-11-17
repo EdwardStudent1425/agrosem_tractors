@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Завдання 3: факт і сценарії</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="scenarios">
+<div id="top"></div>
+<main class="wrap">
+
+<h1>Завдання 3 · Факт проти розрахунку і сценарії запасів <span class="tag pts">10 балів</span></h1>
+<p class="lead">«Порівняти розрахункові показники з фактичними та запропонувати рекомендації щодо сценаріїв управління запасами: цільового показника рівня сервісу (service level) COEFF; бажаного рівня запасів групи (par level)» (с. 5 кейсу).</p>
+
+<h2>Що таке «факт» у наших даних</h2>
+<p>У нас є один знімок складу (12.11.2024): залишок, замовлене, резерв, ціна й історія продажів. Фактичних COEFF, середньорічного запасу та фактичного рівня сервісу немає (питання на 18.11). Тому «факт» — це те, що видно на знімку.</p>
+<div class="grid g4">
+  <div class="card kpi"><div class="v" data-sum="stock_value" data-f="money"></div><div class="l">залишок × прайс (<span data-sum="stock_u"></span> од.)</div></div>
+  <div class="card kpi"><div class="v" data-sum="ordered_value" data-f="money"></div><div class="l">у замовленні постачальника × прайс (<span data-sum="ordered_u"></span> од.)</div></div>
+  <div class="card kpi"><div class="v" data-sum="sold12_value" data-f="money"></div><div class="l">продажі за 12 міс. × прайс (проксі виручки)</div></div>
+  <div class="card kpi"><div class="v" data-sum="budget_proxy_3_5" data-f="money"></div><div class="l">проксі бюджету: продажі / 3,5 (за John Deere / 2,5: <span data-sum="budget_proxy_2_5" data-f="money"></span>)</div></div>
+</div>
+<div class="callout warn">
+  <p><b>Що з цього НЕ можна робити.</b> Ділити продажі на залишок зі знімка (≈ <span id="ratio"></span>) і називати це оборотністю не можна: оборотність — це продажі / <i>середньорічний</i> запас, а ми знаємо запас на одну дату. Валюта й тип ціни теж невідомі. Тому до цілей 3,5 та 2,5 ми порівнюємо лише <b>розрахований</b> середній запас, на тій самій ціновій основі.</p>
+</div>
+<div class="callout">
+  <p><b>Цікаве спостереження:</b> замовлено більше, ніж зараз лежить на складі (<span id="ord-vs-stock"></span>). Разом залишок і замовлене становлять приблизно <span id="ip-months"></span> місяців продажів (за прайсом). Перш ніж докуповувати, перевірте, що вже в дорозі. Це не доводить надлишку: невідомо, на коли призначені ці поставки (S3 — на 3 місяці наперед).</p>
+</div>
+
+<h2>Як ми рахуємо розрахунковий запас</h2>
+<ol class="steps-list">
+  <li><b>Позиція запасу:</b> <code>IP = залишок + замовлене</code> (мінус резерв, якщо залишок «валовий»). Це те, на що ми вже можемо розраховувати.</li>
+  <li><b>Цільовий запас по позиції:</b> <code>S = μ + z(α) × σ</code> на період L+R, де μ і σ беремо з 12 місяців продажів позиції, μ — з урахуванням сезонних індексів завдання 1 для обраного місяця.</li>
+  <li><b>Замовлення:</b> <code>Q = max(0, S − IP)</code>, округлено вгору до упаковки. Це та сама формула ORDER кейсу, коли <code>SOLD × COEFF = S</code>.</li>
+  <li><b>Показники сценарію:</b> par level групи (сума S × ціна), середній запас і оборотність (проксі), обсяг замовлення, «надлишок» над S, симульований рівень сервісу, економія від знижок S3/SY.</li>
+</ol>
+<div class="callout assume">
+  <p><span class="tag assume">припущення моделі</span> Попит за період вважаємо нормальним. Для рідкісних позицій це груба апроксимація, тому <b>fill rate тут — симуляція моделі, а не виміряний факт</b>. σ береться з місячних продажів за 12 місяців і вже містить сезонність, тому дещо завищена. Позиції без продажів у 12 місяцях мають S = 0 (їх залишок рахується «надлишком»).</p>
+</div>
+
+<div class="tool">
+  <span class="tool-badge">Інструмент</span>
+  <h3>Симулятор трьох сценаріїв запасів</h3>
+
+  <h4>Загальні умови</h4>
+  <div class="controls">
+    <label class="field">Місяць замовлення (початок захисту)<select id="m"></select></label>
+    <label class="field">R, перегляд, міс.<input id="R" type="number" min="0.25" step="0.25" value="1" class="given-in"></label>
+    <label class="field">Вартість запасу, % на рік <span class="tag assume">припущ.</span><input id="h" type="number" min="0" step="1" value="25" class="assume-in"></label>
+    <label class="field">Залишок в Excel — це<select id="gross"><option value="0">вільний (резерв уже віднято)</option><option value="1">валовий (віднімаємо резерв)</option></select></label>
+    <label class="field">Округляти замовлення до упаковки<select id="pack"><option value="1">так</option><option value="0">ні</option></select></label>
+  </div>
+  <h4>Режими замовлення: частки й строки поставки</h4>
+  <div class="controls">
+    <label class="field">S3, частка %<input id="s3" type="number" min="0" max="100" value="37" class="assume-in"><span class="hint">знижка 14% <span class="tag given">кейс</span></span></label>
+    <label class="field">SY, частка %<input id="sy" type="number" min="0" max="100" value="37" class="assume-in"><span class="hint">знижка 10% <span class="tag given">кейс</span></span></label>
+    <label class="field">S0, частка %<input id="s0" type="number" disabled value="26"><span class="hint">решта; у кейсі 26% поточних</span></label>
+    <label class="field">L для S3, міс.<input id="L3" type="number" min="0" step="0.25" value="3" class="given-in"></label>
+    <label class="field">L для SY, міс.<input id="LY" type="number" min="0" step="0.25" value="1" class="assume-in"></label>
+    <label class="field">L для S0, міс.<input id="L0" type="number" min="0" step="0.25" value="0.5" class="assume-in"></label>
+  </div>
+  <p class="small muted">У кейсі 74% замовлень на пільгових умовах (S3 + SY) — по всій компанії, а як вони діляться між S3 і SY, невідомо. Для B ми ділимо порівну: це припущення.</p>
+
+  <h4>Цільовий рівень сервісу α за класом деталі, по сценаріях <span class="tag assume">припущення</span></h4>
+  <div class="tbl-wrap"><table id="alpha-table">
+    <thead><tr><th>Клас (як у <a href="3b_service_coeff.html">завданні 2</a>)</th><th class="num">Позицій у B</th><th class="num">Ощадливий</th><th class="num">Збалансований</th><th class="num">Сервісний</th></tr></thead>
+    <tbody></tbody></table></div>
+
+  <h4>Результати</h4>
+  <div id="res" class="tbl-wrap"></div>
+  <div class="grid g2">
+    <div><h4>Середній запас проти бюджету 3,5 оберту</h4><div id="chart-avg"></div></div>
+    <div><h4>Факт зараз проти цільового запасу S</h4><div id="chart-ip"></div></div>
+  </div>
+
+  <h4>Розбивка по класах деталей</h4>
+  <div class="controls"><label class="field">Сценарій<select id="bsel"><option value="0">Ощадливий</option><option value="1" selected>Збалансований</option><option value="2">Сервісний</option></select></label></div>
+  <div class="tbl-wrap"><table id="cls"><thead><tr><th>Клас</th><th class="num">Позицій з попитом</th><th class="num">Цільовий запас S, вартість</th><th class="num">До замовлення, вартість</th><th class="num">Надлишок над S, вартість</th><th class="num">Симульований fill rate</th></tr></thead><tbody></tbody></table></div>
+
+  <h4>Що краще: S3 чи SY? Чи не з’їдає довший запас знижку?</h4>
+  <p class="small muted">Беремо α збалансованого сценарію й змінюємо лише структуру режимів. Довший строк поставки (S3) дає більшу знижку, але вимагає більшого запасу.</p>
+  <div class="tbl-wrap"><table id="mix"><thead><tr><th>Структура</th><th class="num">Середній L, міс.</th><th class="num">Середній запас</th><th class="num">Знижка на рік</th><th class="num">Вартість утримання</th><th class="num">Чистий ефект</th></tr></thead><tbody></tbody></table></div>
+  <p class="small muted">Знижка = річні закупівлі (≈ продажі за 12 міс. за прайсом) × середньозважена знижка. Вартість утримання = середній запас × річна вартість запасу. Чистий ефект — порівняно із закупівлею лише поточними замовленнями S0 (без знижки).</p>
+</div>
+
+<h2>Як сформулювати рекомендацію</h2>
+<p>Автоматичного «найкращого» сценарію немає: вибір залежить від того, що важливіше. Корисна логіка для захисту:</p>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Сценарій</th><th>Коли обирати</th><th>Ціна вибору</th></tr></thead>
+<tbody>
+<tr><td><b>Ощадливий</b></td><td>Головне — вкластися в бюджет 3,5 оберту і не заморожувати гроші.</td><td>Нижчий рівень сервісу на менш критичних класах; більше термінових замовлень.</td></tr>
+<tr><td><b>Збалансований</b></td><td>Критичні деталі (клас A) захищено високо, решта економно.</td><td>Середній запас близько до бюджету; треба перевірити, чи вкладається.</td></tr>
+<tr><td><b>Сервісний</b></td><td>Пріоритет — відсутність простою клієнта; готові до оберту ближче до 2,5.</td><td>Більше капіталу в запасах; ризик не вкластися в ціль Агросем.</td></tr>
+</tbody></table></div>
+<p class="small muted">Рекомендований сценарій називаємо лише після того, як припущення про Cu, Co і строки поставки підтверджено. До того — це структура та діапазон, а не вирок.</p>
+
+<div id="pager"></div>
+</main>
+<script src="data/summary.js"></script>
+<script src="data/monthly.js"></script>
+<script src="data/skus.js"></script>
+<script src="assets/stats.js"></script>
+<script src="assets/charts.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function () {
+  var S = AGRO.summary, M = AGRO.monthly, K = AGRO.skus, C = {}; K.cols.forEach(function (n, i) { C[n] = i; });
+  var MN = ['лис', 'гру', 'січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов'];
+  var IDX = M.seasonal.all.mean;
+  var CLS = { A: { name: 'A · зупинка машини', codes: [11, 12, 13, 14, 51, 52, 54] }, B: { name: 'B · знос і ремонт', codes: [15, 55] },
+    C: { name: 'C · відновлення ресурсу', codes: [20, 50] }, D: { name: 'D · метизи й інше', codes: [21, 90, 91, 99, 0] } };
+  var KEYS = ['A', 'B', 'C', 'D'];
+  var ALPHA = { A: [90, 95, 98], B: [75, 85, 92], C: [60, 70, 80], D: [50, 55, 65] };
+  var SCN = ['Ощадливий', 'Збалансований', 'Сервісний'];
+  function clsOf(cc) { for (var k in CLS) if (CLS[k].codes.indexOf(cc) >= 0) return k; return 'D'; }
+  function num(id, d) { var v = parseFloat(U.el(id).value); return isNaN(v) ? d : v; }
+
+  /* факти зі знімка */
+  U.el('ratio').textContent = U.fmt2(S.sold12_value / S.stock_value);
+  U.el('ord-vs-stock').textContent = U.fmtInt(S.ordered_value) + ' проти ' + U.fmtInt(S.stock_value);
+  U.el('ip-months').textContent = U.fmt1((S.stock_value + S.ordered_value) / S.sold12_value * 12);
+
+  /* масиви з попитом */
+  var P = [], noDemandIP = { free: 0, gross: 0 };
+  K.rows.forEach(function (r) {
+    var mean = r[C.mean12];
+    if (mean > 0) P.push({ k: clsOf(r[C.cc]), mean: mean, sd: r[C.std12] || 0, price: r[C.price], stock: r[C.stock], ord: r[C.ordered], res: r[C.reserved], pack: r[C.pack] > 1 ? r[C.pack] : 1 });
+    else { noDemandIP.free += (r[C.stock] + r[C.ordered]) * r[C.price]; noDemandIP.gross += Math.max(0, r[C.stock] + r[C.ordered] - r[C.reserved]) * r[C.price]; }
+  });
+  var counts = {}; KEYS.forEach(function (k) { counts[k] = 0; });
+  P.forEach(function (p) { counts[p.k]++; });
+  var totalCounts = {}; KEYS.forEach(function (k) { totalCounts[k] = 0; });
+  Object.keys(S.cc_counts).forEach(function (cc) { totalCounts[clsOf(+cc)] += S.cc_counts[cc]; });
+
+  U.el('m').innerHTML = MN.map(function (m, i) { return '<option value="' + i + '">' + m + '</option>'; }).join('');
+  document.querySelector('#alpha-table tbody').innerHTML = KEYS.map(function (k) {
+    return '<tr><td><b>' + CLS[k].name + '</b></td><td class="num">' + U.fmtInt(totalCounts[k]) + '</td>' +
+      [0, 1, 2].map(function (j) { return '<td class="num"><input id="a-' + k + j + '" type="number" min="1" max="99.9" step="1" value="' + ALPHA[k][j] + '" class="assume-in" style="width:64px"> %</td>'; }).join('') + '</tr>';
+  }).join('');
+
+  function winSum(m, T) { var s = 0, n = Math.ceil(T), k; for (k = 0; k < n; k++) s += Math.min(1, T - k) * IDX[(m + k) % 12]; return s; }
+
+  function simulate(alpha, Leff, Rr, m, gross, pack) {
+    var T = Leff + Rr, ws = winSum(m, T), z = {}, by = {}, k;
+    KEYS.forEach(function (c) { z[c] = Stats.invPhi(Math.min(0.999, Math.max(0.01, alpha[c] / 100))); by[c] = { n: 0, S: 0, ord: 0, ex: 0, mu: 0, sh: 0, Su: 0, Du: 0 }; });
+    var tot = { S: 0, ord: 0, ordU: 0, ex: 0, avg: 0, mu: 0, sh: 0, Su: 0, Du: 0, cyc: 0 }, sqT = Math.sqrt(T);
+    P.forEach(function (p) {
+      var ip = p.stock + p.ord - (gross ? p.res : 0); ip = Math.max(0, ip);
+      var sg = p.sd * sqT, muw = p.mean * ws, S_ = Math.ceil(muw + z[p.k] * sg), q = Math.max(0, S_ - ip);
+      if (pack && p.pack > 1) q = Math.ceil(q / p.pack - 1e-9) * p.pack;
+      var ze = sg > 0 ? (S_ - muw) / sg : 99, sh = sg > 0 ? sg * Stats.loss(ze) : Math.max(0, muw - S_);
+      var b = by[p.k];
+      b.n++; b.S += S_ * p.price; b.ord += q * p.price; b.ex += Math.max(0, ip - S_) * p.price; b.mu += muw; b.sh += sh;
+      tot.S += S_ * p.price; tot.Su += S_; tot.Du += p.mean * 12; tot.ord += q * p.price; tot.ordU += q; tot.ex += Math.max(0, ip - S_) * p.price;
+      tot.avg += p.price * (z[p.k] * p.sd * sqT + p.mean * Rr / 2); tot.mu += muw; tot.sh += sh;
+      tot.cyc += muw * (sg > 0 ? Stats.Phi(ze) : (S_ >= muw ? 1 : 0));
+    });
+    tot.fill = 1 - tot.sh / tot.mu; tot.cycle = tot.cyc / tot.mu; tot.turn = S.sold12_value / tot.avg; tot.by = by; tot.T = T; tot.Leff = Leff;
+    tot.dValue = 0; return tot;
+  }
+
+  function mix() {
+    var s3 = Math.max(0, num('s3', 37)), sy = Math.max(0, num('sy', 37)); if (s3 + sy > 100) { sy = Math.max(0, 100 - s3); }
+    U.el('s0').value = Math.max(0, 100 - s3 - sy);
+    return { s3: s3 / 100, sy: sy / 100, s0: Math.max(0, 100 - s3 - sy) / 100 };
+  }
+  function leffOf(x) { return x.s3 * num('L3', 3) + x.sy * num('LY', 1) + x.s0 * num('L0', 0.5); }
+  function discOf(x) { return x.s3 * 0.14 + x.sy * 0.10; }
+
+  var last = null;
+  function run() {
+    var x = mix(), Rr = num('R', 1), h = num('h', 25) / 100, m = parseInt(U.el('m').value, 10) || 0, gross = U.el('gross').value === '1', pack = U.el('pack').value === '1';
+    var Leff = leffOf(x), res = [0, 1, 2].map(function (j) {
+      var a = {}; KEYS.forEach(function (k) { a[k] = num('a-' + k + j, ALPHA[k][j]); });
+      return simulate(a, Leff, Rr, m, gross, pack);
+    });
+    var ipNow = S.stock_value + S.ordered_value - (gross ? S.reserved_value : 0);
+    last = { res: res, x: x, Rr: Rr, h: h, m: m, gross: gross, pack: pack };
+    var cap35 = S.budget_proxy_3_5, cap25 = S.budget_proxy_2_5, disc = discOf(x), save = S.sold12_value * disc;
+    function row(label, fn, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td>' + res.map(function (r) { return '<td class="num">' + fn(r) + '</td>'; }).join('') + '</tr>'; }
+    U.el('res').innerHTML = '<table><thead><tr><th>Показник</th>' + SCN.map(function (s) { return '<th class="num">' + s + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      row('<b>Par level групи</b>: цільовий запас S, вартість', function (r) { return '<b>' + U.fmtInt(r.S) + '</b>'; }, 'sel') +
+      row('Груповий COEFF (S / річний попит, у штуках)', function (r) { return U.fmt2(r.Su / r.Du); }) +
+      row('Середній запас (проксі: страховий + половина циклу)', function (r) { return U.fmtInt(r.avg) + ' <span class="small muted">(' + U.pct(r.avg / cap35, 0) + ' від бюджету 3,5)</span>'; }) +
+      row('Оборотність, проксі (ціль Агросем 3,5; John Deere 2,5)', function (r) { return '<b>' + U.fmt2(r.turn) + '</b> ' + (r.turn >= 3.5 ? '<span class="tag given">≥ 3,5</span>' : r.turn >= 2.5 ? '<span class="tag assume">2,5–3,5</span>' : '<span class="tag ask">&lt; 2,5</span>'); }) +
+      row('Факт зараз: залишок + замовлене, вартість', function () { return U.fmtInt(ipNow); }) +
+      row('Надлишок над S (є зараз, але понад ціль), вартість', function (r) { return U.fmtInt(r.ex + (gross ? noDemandIP.gross : noDemandIP.free)); }) +
+      row('&nbsp;&nbsp;з них позиції без продажів за 12 міс.', function () { return U.fmtInt(gross ? noDemandIP.gross : noDemandIP.free); }) +
+      row('<b>До замовлення зараз</b>, вартість (' + (pack ? 'з упаковкою' : 'без упаковки') + ')', function (r) { return '<b>' + U.fmtInt(r.ord) + '</b> <span class="small muted">(' + U.fmtInt(r.ordU) + ' од.)</span>'; }, 'sel') +
+      row('Симульований fill rate (частка попиту зі складу)', function (r) { return U.pct(r.fill, 1); }) +
+      row('Імовірність без дефіциту (зважена за попитом)', function (r) { return U.pct(r.cycle, 1); }) +
+      '</tbody></table>' +
+      '<p class="small muted" style="padding:6px 10px">Середній L за вашими режимами = ' + U.fmt2(Leff) + ' міс., період захисту L+R = ' + U.fmt2(Leff + Rr) + ' міс.; знижка від режимів ≈ ' + U.pct(disc, 1) + ', тобто ≈ ' + U.fmtInt(save) + ' на рік. Бюджет-проксі: 3,5 оберту → ' + U.fmtInt(cap35) + ', 2,5 оберту → ' + U.fmtInt(cap25) + '.</p>';
+
+    Charts.bars(U.el('chart-avg'), { labels: SCN, yFormat: U.fmtInt, height: 260, yTitle: 'умовні одиниці прайсу',
+      series: [{ name: 'Середній запас сценарію (проксі)', values: res.map(function (r) { return Math.round(r.avg); }), color: '--c1' }], refY: cap35, refLabel: 'бюджет-проксі 3,5 оберту' });
+    Charts.bars(U.el('chart-ip'), { labels: ['Залишок зараз', 'Залишок + замовлене'].concat(SCN.map(function (s) { return 'S: ' + s.toLowerCase(); })), yFormat: U.fmtInt, height: 260,
+      series: [{ name: 'Вартість за прайсом', values: [Math.round(S.stock_value), Math.round(ipNow)].concat(res.map(function (r) { return Math.round(r.S); })), color: '--c2' }], xRotate: true });
+    drawClass(); drawMix();
+  }
+
+  function drawClass() {
+    if (!last) return;
+    var r = last.res[parseInt(U.el('bsel').value, 10)];
+    document.querySelector('#cls tbody').innerHTML = KEYS.map(function (k) {
+      var b = r.by[k];
+      return '<tr><td><b>' + CLS[k].name + '</b></td><td class="num">' + U.fmtInt(b.n) + '</td><td class="num">' + U.fmtInt(b.S) + '</td><td class="num">' + U.fmtInt(b.ord) + '</td><td class="num">' + U.fmtInt(b.ex) + '</td><td class="num">' + (b.mu > 0 ? U.pct(1 - b.sh / b.mu, 1) : '—') + '</td></tr>';
+    }).join('');
+  }
+  function drawMix() {
+    if (!last) return;
+    var a = {}; KEYS.forEach(function (k) { a[k] = num('a-' + k + '1', ALPHA[k][1]); });
+    var variants = [['100% поточні (S0), без знижки', { s3: 0, sy: 0, s0: 1 }], ['74% SY + 26% S0', { s3: 0, sy: 0.74, s0: 0.26 }],
+      ['37% S3 + 37% SY + 26% S0', { s3: 0.37, sy: 0.37, s0: 0.26 }], ['74% S3 + 26% S0', { s3: 0.74, sy: 0, s0: 0.26 }], ['Ваші частки (з панелі вище)', last.x]];
+    var base = null;
+    document.querySelector('#mix tbody').innerHTML = variants.map(function (v, i) {
+      var Le = leffOf(v[1]), r = simulate(a, Le, last.Rr, last.m, last.gross, last.pack), save = S.sold12_value * discOf(v[1]), hold = r.avg * last.h, net = save - hold;
+      if (i === 0) base = net;
+      return '<tr' + (i === 4 ? ' class="sel"' : '') + '><td>' + v[0] + '</td><td class="num">' + U.fmt2(Le) + '</td><td class="num">' + U.fmtInt(r.avg) + '</td><td class="num">' + U.fmtInt(save) + '</td><td class="num">' + U.fmtInt(hold) + '</td><td class="num"><b>' + U.fmtInt(net - base) + '</b></td></tr>';
+    }).join('');
+  }
+
+  ['m', 'R', 'h', 'gross', 'pack', 's3', 'sy', 'L3', 'LY', 'L0'].forEach(function (id) { U.el(id).addEventListener('input', run); });
+  document.querySelector('#alpha-table tbody').addEventListener('input', run);
+  U.el('bsel').addEventListener('input', drawClass);
+  run();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Завдання 2: сервіс і COEFF</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="coeff">
+<div id="top"></div>
+<main class="wrap">
+
+<h1>Завдання 2 · Рівень сервісу і COEFF <span class="tag pts">10 балів</span></h1>
+<p class="lead">«На основі порівняння втрат від невиконаного замовлення та втрат від зберігання запасів групи оцініть бажаний рівень сервісу (ймовірність наявності запчастин на складі) — коригуючий коефіцієнт COEFF» (с. 5 кейсу).</p>
+
+<h2>Ідея простими словами</h2>
+<p>Кожна деталь на складі може «схибити» двома способами:</p>
+<div class="grid g2">
+  <div class="card"><h3>Занадто мало: втрата Cu</h3><p class="small">Деталі немає, коли її попросили. Втрачаємо продаж, платимо за термінову доставку, а клієнт зі стоячою машиною нервує. Дорожче для критичних деталей.</p></div>
+  <div class="card"><h3>Занадто багато: втрата Co</h3><p class="small">Зайва одиниця лежить і «заморожує» гроші, займає місце, може не продатись. Дешевше, якщо деталь можна повернути виробнику (RET = R).</p></div>
+</div>
+<p>Оптимальний рівень сервісу — там, де ці два ризики врівноважені:</p>
+<div class="formula">α = Cu / (Cu + Co)</div>
+<p>Чим дорожчий дефіцит порівняно із зайвим запасом, тим вищий потрібний рівень сервісу. Якщо обидві втрати виразити у відсотках від ціни, ціна у формулі скорочується. Тому α залежить <i>від класу деталі</i> (критичності, можливості повернення), а не від її ціни.</p>
+<details><summary>Чому саме така формула (для цікавих)</summary>
+  <p>Тримаємо ще одну одиницю: якщо попит перевищить запас (ймовірність 1 − α), ми уникаємо втрати Cu; якщо ні (ймовірність α), несемо втрату Co. Додавати одиниці вигідно, доки Cu·(1 − α) > Co·α, тобто до α = Cu / (Cu + Co). Це модель «продавця газет», стандартна для одного періоду замовлення. Її припущення: попит на період L+R має відомий розподіл, а втрати лінійні.</p>
+</details>
+
+<h2>Ланцюжок розрахунку</h2>
+<div class="chain">
+  <div class="step"><b><span class="n">1</span>α з вартостей</b><code>α = Cu / (Cu + Co)</code>за класом критичності CC та RET</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">2</span>Попит за L+R</b>З прогнозу завдання 1: <code>μ = D/12 × Σ індексів</code> за місяці захисту</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">3</span>Цільовий запас S</b><code>S = μ + z(α) × σ</code> — «квантиль α» попиту за L+R</div>
+  <div class="arrow">→</div>
+  <div class="step"><b><span class="n">4</span>COEFF</b><code>COEFF = S / D</code>, тобто частка річних продажів</div>
+</div>
+<p class="small muted">Звідси видно, чому COEFF у кейсі змінюється по місяцях і групах: сезонність змінює μ (завдання 1), різна критичність змінює α, різна нерегулярність попиту змінює σ.</p>
+
+<div class="tool">
+  <span class="tool-badge">Інструмент 1</span>
+  <h3>Від вартості дефіциту до рівня сервісу за класами деталей</h3>
+  <div class="callout assume"><span class="tag assume">припущення</span> У кейсі немає жодної вартості. Усі жовті поля — наші припущення для демонстрації методу. Змініть їх і подивіться, як змінюється α. Їх треба підтвердити або замінити даними з 18.11.</div>
+  <div class="controls">
+    <label class="field">Режим замовлення
+      <select id="mode"><option value="S3">S3: поставка через 3 міс., знижка 14%</option><option value="SY">SY: щомісячне, знижка 10%</option><option value="S0">S0: поточне</option></select></label>
+    <label class="field">L, час поставки, міс. <span class="tag assume" id="L-tag">кейс</span><input id="L" type="number" min="0" step="0.25" value="3" class="given-in"></label>
+    <label class="field">R, перегляд, міс. <span class="tag given">кейс</span><input id="R" type="number" min="0.25" step="0.25" value="1" class="given-in"></label>
+    <label class="field">Вартість запасу, % на рік<input id="h" type="number" min="0" step="1" value="25" class="assume-in"><span class="hint">гроші + склад</span></label>
+    <label class="field">Ризик непродажу без повернення, % ціни<input id="w" type="number" min="0" step="1" value="10" class="assume-in"><span class="hint">лише для RET = E</span></label>
+  </div>
+  <div class="tbl-wrap"><table id="cls-table">
+    <thead><tr><th>Клас</th><th>Коди CC</th><th class="num">Позицій у B</th><th class="num">Cu, % ціни <span class="tag assume">припущ.</span></th>
+      <th class="num">Co, R (є повернення)</th><th class="num">α, R</th><th class="num">Co, E (немає)</th><th class="num">α, E</th></tr></thead>
+    <tbody></tbody></table></div>
+  <p class="small muted" id="cls-note"></p>
+</div>
+
+<div class="tool">
+  <span class="tool-badge">Інструмент 2</span>
+  <h3>Калькулятор COEFF по місяцях</h3>
+  <p class="small muted">Бере α з таблиці вище й сезонні індекси з <a href="3a_seasonality.html">завдання 1</a>. Показує, як зміниться COEFF, якщо замовляти в різні місяці бюджетного року.</p>
+  <div class="controls">
+    <label class="field">Клас деталі<select id="c-cls"></select></label>
+    <label class="field">Повернення<select id="c-ret"><option value="R">R · можна повернути</option><option value="E">E · не можна</option></select></label>
+    <label class="field">D, річний попит, шт<input id="c-d" type="number" min="1" value="120"></label>
+    <label class="field">σ/μ за період L+R <span class="tag assume">припущ.</span><input id="c-cv" type="number" min="0" step="0.05" value="0.6" class="assume-in"><span class="hint">0,3 — стабільний попит групи; 1+ — рідкісна деталь</span></label>
+    <label class="field">Сезонність<select id="c-seas"><option value="1">враховувати індекси</option><option value="0">вимкнути (рівномірно)</option></select></label>
+    <label class="field">Місяць замовлення<select id="c-m"></select></label>
+  </div>
+  <div id="c-out" class="grid g4"></div>
+  <div id="c-chart"></div>
+  <p class="small" id="c-note"></p>
+</div>
+
+<h2>Що кейс каже про COEFF і чи збігається це з нашим підходом</h2>
+<ul>
+  <li>«Частка від загальнорічного замовлення» — у нас це <code>S / D</code>. ✔</li>
+  <li>«Більший для позицій з 10+ клієнтами й критично необхідних» — у нас це вищий α для класу A і менший σ/μ для частих позицій. ✔</li>
+  <li>«Враховує сезонність» — у нас через індекси на період L+R. ✔</li>
+  <li>«Від 0 до 1» — формула цього не гарантує. Якщо COEFF виходить більше 1 (рідкісна деталь з високим σ), ми <b>показуємо це як конфлікт</b> і не обрізаємо мовчки: це сигнал, що позицію краще не тримати або замовляти під клієнта.</li>
+</ul>
+
+<h2>Правило для граничних позицій («рівно 3 клієнти»)</h2>
+<div class="callout given"><span class="tag given">кейс</span> Якщо клієнтів менше трьох, попит вважають випадковим і не враховують у прогнозах. У кейсі понад 2000 таких «граничних» позицій потребують ручного перегляду. Треба автоматичне правило.</div>
+<p>У наших даних є не клієнти, а <b>хіти</b>: що це, невідомо (питання на 18.11). Тому ми беремо <i>проксі</i>: сума хітів за 12 повних місяців дорівнює 3. Таких у групі B — <b data-sum="boundary3"></b> позицій, але лише <b data-sum="boundary3_max3"></b> із них мають 3 хіти за один місяць (тільки для них видно «щонайменше 3 клієнти» за будь-якого розуміння хітів).</p>
+<div class="callout warn">Рівно 3 — це <b>не</b> «менше трьох». Кейс відкидає лише <i>менше</i> трьох, тож автоматично відкидати всі «граничні» не можна.</div>
+
+<h3>Пропозиція правила (для обговорення в команді)</h3>
+<ol class="steps-list">
+  <li><b>Клас A (зупинка машини, CC 11–14, 51–54):</b> не відкидати. Тримати мінімальний запас 1 шт., якщо були продажі за 12 місяців; далі за моделлю α.</li>
+  <li><b>Інші класи з поверненням (R):</b> наперед не тримати, замовляти під клієнта. Якщо така деталь усе ж потрапить на склад, її можна повернути виробнику.</li>
+  <li><b>Інші класи без повернення (E):</b> не тримати; замовляти лише під клієнта (S0).</li>
+  <li><b>Невизначеність:</b> якщо історія неповна (менше 12 місяців даних), позицію ставимо в ручну перевірку, а не відкидаємо автоматично.</li>
+</ol>
+<p class="small muted">Це <b>наша пропозиція</b>, а не вимога кейсу. Вона залежить від відповіді на питання про «хіти». У таблиці — скільки позицій потрапляє під кожне правило.</p>
+<div class="tbl-wrap"><table id="bd-table">
+<thead><tr><th>Клас</th><th class="num">Граничних усього</th><th class="num">з поверненням (R)</th><th class="num">без повернення (E)</th><th class="num">з неповною історією</th><th class="num">Залишок, умов. од.</th><th>Що робить правило</th></tr></thead><tbody></tbody></table></div>
+
+<h2>Що здаємо за завданням 2</h2>
+<ul>
+  <li>Таблицю <b>Cu, Co → α</b> за класами (і RET), із явними припущеннями.</li>
+  <li>Формулу <b>α → S → COEFF</b> і COEFF по місяцях для групи B або класів.</li>
+  <li>Правило для граничних позицій і скільки позицій воно стосується.</li>
+  <li>Список питань, які змінять числа (див. <a href="1_questions.html">питання</a>).</li>
+</ul>
+
+<div id="pager"></div>
+</main>
+<script src="data/summary.js"></script>
+<script src="data/monthly.js"></script>
+<script src="data/skus.js"></script>
+<script src="assets/stats.js"></script>
+<script src="assets/charts.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function () {
+  var S = AGRO.summary, M = AGRO.monthly, K = AGRO.skus, C = {}; K.cols.forEach(function (n, i) { C[n] = i; });
+  var MN = ['лис', 'гру', 'січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов'];
+  var IDX = M.seasonal.all.mean;                                  // середній сезонний індекс, порядок: листопад … жовтень
+  var CLS = {
+    A: { name: 'A · зупинка машини', codes: [11, 12, 13, 14, 51, 52, 54], cu: 80 },
+    B: { name: 'B · знос і ремонт', codes: [15, 55], cu: 40 },
+    C: { name: 'C · відновлення ресурсу', codes: [20, 50], cu: 20 },
+    D: { name: 'D · метизи й інше', codes: [21, 90, 91, 99, 0], cu: 10 }
+  };
+  function clsOf(cc) { for (var k in CLS) if (CLS[k].codes.indexOf(cc) >= 0) return k; return 'D'; }
+  var counts = { A: 0, B: 0, C: 0, D: 0 };
+  Object.keys(S.cc_counts).forEach(function (cc) { counts[clsOf(+cc)] += S.cc_counts[cc]; });
+
+  function num(id, d) { var v = parseFloat(U.el(id).value); return isNaN(v) ? d : v; }
+  var LDEF = { S3: 3, SY: 1, S0: 0.5 };
+
+  function params() { return { L: num('L', 3), R: num('R', 1), h: num('h', 25) / 100, w: num('w', 10) / 100 }; }
+  function alphaOf(k, ret, P) {
+    var cu = num('cu-' + k, CLS[k].cu) / 100, T = P.L + P.R;
+    var co = P.h * T / 12 + (ret === 'E' ? P.w : 0);
+    return { cu: cu, co: co, a: cu / (cu + co) };
+  }
+
+  function buildTable() {
+    var P = params(), tb = document.querySelector('#cls-table tbody');
+    if (!tb.children.length) {
+      tb.innerHTML = Object.keys(CLS).map(function (k) {
+        return '<tr id="r-' + k + '"><td><b>' + CLS[k].name + '</b></td><td>' + CLS[k].codes.join(', ') + '</td><td class="num">' + U.fmtInt(counts[k]) + '</td>' +
+          '<td class="num"><input id="cu-' + k + '" type="number" min="1" step="5" value="' + CLS[k].cu + '" class="assume-in" style="width:70px"></td>' +
+          '<td class="num" id="coR-' + k + '"></td><td class="num" id="aR-' + k + '"></td><td class="num" id="coE-' + k + '"></td><td class="num" id="aE-' + k + '"></td></tr>';
+      }).join('');
+      tb.addEventListener('input', recalc);
+    }
+    Object.keys(CLS).forEach(function (k) {
+      var r = alphaOf(k, 'R', P), e = alphaOf(k, 'E', P);
+      U.el('coR-' + k).textContent = U.fmt1(r.co * 100) + '%'; U.el('aR-' + k).innerHTML = '<b>' + U.pct(r.a, 1) + '</b> <span class="muted small">z = ' + U.fmt2(Stats.invPhi(r.a)) + '</span>';
+      U.el('coE-' + k).textContent = U.fmt1(e.co * 100) + '%'; U.el('aE-' + k).innerHTML = '<b>' + U.pct(e.a, 1) + '</b> <span class="muted small">z = ' + U.fmt2(Stats.invPhi(e.a)) + '</span>';
+    });
+    U.el('cls-note').innerHTML = 'Co = вартість запасу × (L+R)/12 (' + U.fmt1(P.h * 100) + '% × ' + U.fmt2(P.L + P.R) + '/12 = ' + U.fmt1(P.h * (P.L + P.R) / 12 * 100) + '%)' + ' для R; для E додається ризик непродажу. ' +
+      'Довший період захисту L+R збільшує Co й <b>знижує</b> α: тримати запас довше дорожче. Це аргумент на користь коротшого періоду (SY), але знижка S3 (14% проти 10% у SY) тягне в інший бік: порівнюємо їх у <a href="3c_scenarios.html">завданні 3</a>.';
+  }
+
+  /* калькулятор */
+  U.el('c-cls').innerHTML = Object.keys(CLS).map(function (k) { return '<option value="' + k + '">' + CLS[k].name + '</option>'; }).join('');
+  U.el('c-m').innerHTML = MN.map(function (m, i) { return '<option value="' + i + '"' + (i === 10 ? ' selected' : '') + '>' + m + '</option>'; }).join('');
+  function windowSum(m, T, seas) {
+    var s = 0, n = Math.ceil(T), k;
+    for (k = 0; k < n; k++) s += Math.min(1, T - k) * (seas ? IDX[(m + k) % 12] : 1);
+    return s;
+  }
+  function calc() {
+    var P = params(), T = P.L + P.R, k = U.el('c-cls').value, ret = U.el('c-ret').value;
+    var D = num('c-d', 120), cv = num('c-cv', 0.6), seas = U.el('c-seas').value === '1', m = parseInt(U.el('c-m').value, 10);
+    var al = alphaOf(k, ret, P), z = Stats.invPhi(al.a);
+    function at(mm) {
+      var mu = D / 12 * windowSum(mm, T, seas), sg = cv * mu, Sx = mu + z * sg;
+      return { mu: mu, sg: sg, S: Sx, coeff: Sx / D, base: mu / D };
+    }
+    var cur = at(m), all = MN.map(function (_, i) { return at(i); });
+    U.el('c-out').innerHTML =
+      '<div class="card kpi"><div class="v">' + U.pct(al.a, 1) + '</div><div class="l">рівень сервісу α (z = ' + U.fmt2(z) + ')</div></div>' +
+      '<div class="card kpi"><div class="v">' + U.fmt1(cur.mu) + ' шт</div><div class="l">середній попит за L+R = ' + U.fmt2(T) + ' міс. (старт: ' + MN[m] + ')</div></div>' +
+      '<div class="card kpi"><div class="v">' + U.fmt1(cur.S) + ' шт</div><div class="l">цільовий запас S (страховий: ' + U.fmt1(cur.S - cur.mu) + ' шт)</div></div>' +
+      '<div class="card kpi"><div class="v">' + U.fmt2(cur.coeff) + '</div><div class="l">COEFF = S / D' + (cur.coeff > 1 ? ' <span class="tag ask">поза 0…1</span>' : '') + '</div></div>';
+    Charts.bars(U.el('c-chart'), { labels: MN, yFormat: function (x) { return U.fmt2(x); }, yTitle: 'COEFF', height: 280,
+      series: [{ name: 'Без страхового запасу: μ / D', values: all.map(function (a) { return +a.base.toFixed(3); }), color: '--c6' },
+        { name: 'COEFF = S / D (із страховим запасом)', values: all.map(function (a) { return +a.coeff.toFixed(3); }), color: '--c1' }],
+      refY: 1, refLabel: 'межа кейсу: 1' });
+    var sep = all[10];
+    U.el('c-note').innerHTML = 'Перевірка на здоровий глузд: без страхового запасу COEFF = (L+R)/12 = ' + U.fmt2(T / 12) + ' за рівномірного попиту. ' +
+      'Для вересня за вашими припущеннями COEFF ≈ <b>' + U.fmt2(sep.coeff) + '</b> (кейс наводить для вересня 0,35 для оприскувачів і 0,66 для пасів: це просто орієнтири діапазону, а не еталони для тракторів).' +
+      (cur.coeff > 1 ? ' <b>COEFF більший за 1:</b> запас S перевищує весь річний попит. Для таких позицій формула кейсу з обмеженням 0…1 некоректна, і їх варто розглядати окремо.' : '');
+  }
+  function recalc() { buildTable(); calc(); }
+
+  U.el('mode').addEventListener('input', function () {
+    var m = U.el('mode').value; U.el('L').value = LDEF[m];
+    var t = U.el('L-tag'); t.className = 'tag ' + (m === 'S3' ? 'given' : 'assume'); t.textContent = m === 'S3' ? 'кейс' : 'припущення';
+    U.el('L').className = m === 'S3' ? 'given-in' : 'assume-in'; recalc();
+  });
+  ['L', 'R', 'h', 'w'].forEach(function (id) { U.el(id).addEventListener('input', recalc); });
+  ['c-cls', 'c-ret', 'c-d', 'c-cv', 'c-seas', 'c-m'].forEach(function (id) { U.el(id).addEventListener('input', calc); });
+
+  /* граничні позиції */
+  var bd = {}; Object.keys(CLS).forEach(function (k) { bd[k] = { n: 0, R: 0, E: 0, inc: 0, val: 0 }; });
+  K.rows.forEach(function (r) {
+    if (r[C.hits12] !== 3) return;
+    var b = bd[clsOf(r[C.cc])]; b.n++; b[r[C.ret] ? 'R' : 'E']++; if (r[C.obs12] < 12) b.inc++; b.val += r[C.stock] * r[C.price];
+  });
+  var WHAT = { A: 'Тримати мін. 1 шт., якщо були продажі; інакше за моделлю', B: 'Під клієнта', C: 'Під клієнта', D: 'Під клієнта' };
+  var tot = { n: 0, R: 0, E: 0, inc: 0, val: 0 };
+  document.querySelector('#bd-table tbody').innerHTML = Object.keys(CLS).map(function (k) {
+    var b = bd[k]; Object.keys(tot).forEach(function (x) { tot[x] += b[x]; });
+    return '<tr><td><b>' + CLS[k].name + '</b></td><td class="num">' + b.n + '</td><td class="num">' + b.R + '</td><td class="num">' + b.E + '</td><td class="num">' + b.inc + '</td><td class="num">' + U.fmtInt(b.val) + '</td><td class="small">' + WHAT[k] + '</td></tr>';
+  }).join('') + '<tr class="sel"><td><b>Разом</b></td><td class="num"><b>' + tot.n + '</b></td><td class="num"><b>' + tot.R + '</b></td><td class="num"><b>' + tot.E + '</b></td><td class="num"><b>' + tot.inc + '</b></td><td class="num"><b>' + U.fmtInt(tot.val) + '</b></td><td></td></tr>';
+
+  recalc();
+})();
+</script>
+</body>
+</html>

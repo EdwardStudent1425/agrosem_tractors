@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Дані та пошук запчастин</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="data">
+<div id="top"></div>
+<main class="wrap">
+
+<h1>Дані: що в Excel і як це читати</h1>
+<p class="lead">Один файл <code>inputs/12_11_2024_140029.xlsx</code>: знімок складу на <b>12.11.2024</b>. Один аркуш, <span data-sum="catalog_rows"></span> рядків (позицій), 89 стовпців. Ми працюємо з <b data-sum="sku_n"></b> позиціями групи «Трактори».</p>
+
+<h2>Як влаштований файл: 89 стовпців</h2>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Стовпці</th><th>Що там</th><th>Коментар</th></tr></thead>
+<tbody>
+<tr><td>Артикул, GUID</td><td>Ідентифікатор позиції</td><td>У групі B вони збігаються. Реального заводського номера немає, тож з’єднуємо дані лише за ним, а не за назвою (назви повторюються: «Шайба», «Кільце»…).</td></tr>
+<tr><td>Назва</td><td>Назва деталі</td><td>Не унікальна.</td></tr>
+<tr><td>Номенклатурна гр 1 / 2 / 3 рівень</td><td>1 — вузол (кабіна, трансмісія…); 2 — серія техніки; 3 — тип техніки</td><td>Група B — це рівень 3 = «Трактори».</td></tr>
+<tr><td>К-сть в упаковці, Кратність продаж</td><td>PACK з кейсу</td><td>Яке з полів обов’язкове при закупівлі — питання.</td></tr>
+<tr><td>Прайс</td><td>PP — ціна за одиницю</td><td>Валюта й тип ціни не вказані.</td></tr>
+<tr><td>Індикотор повернення</td><td>RET: Retun / NO</td><td>Retun ↔ R (можна повернути), NO ↔ E — наше робоче припущення.</td></tr>
+<tr><td>Critical Code, Inventory Class Code</td><td>CC, IC</td><td>CC описано в Додатку 3; IC (A…I) — ні.</td></tr>
+<tr><td>Доступний залишок, В замовленні постачальника, Зарезервовано</td><td>STOCK, ORDERED, RESERVE</td><td>Знімок на одну дату. Чи залишок уже без резерву — невідомо.</td></tr>
+<tr><td>Продажі / Хіти поточного місяця</td><td>Листопад 2024 до 12-го числа</td><td>Неповний місяць: <b>не використовувати</b> як повний у сезонності.</td></tr>
+<tr><td>Продажі / Хіти «1…36 місяців тому» (72 стовпці)</td><td>Пари «продано одиниць» і «хітів» за кожен із 36 повних місяців</td><td>«1 місяць тому» = жовтень 2024, «36 місяців тому» = листопад 2021.</td></tr>
+</tbody></table></div>
+
+<h3>Календар: як «N місяців тому» стає датою</h3>
+<p class="small">Знімок зроблено 12.11.2024, тому: <b>1 міс. тому = жовтень 2024</b>, 12 міс. тому = листопад 2023, 24 = листопад 2022, 36 = листопад 2021.
+Бюджетні роки починаються 1 листопада: <b>FY2022</b> = лис. 2021 – жов. 2022, <b>FY2023</b> = лис. 2022 – жов. 2023, <b>FY2024</b> = лис. 2023 – жов. 2024. Прогнозуємо <b>FY2025</b> = лис. 2024 – жов. 2025.</p>
+<div class="callout assume"><span class="tag assume">припущення</span> Дата знімка випливає з назви файлу (12_11_2024) і збігається з датою створення в метаданих. Файл пізніше пересохраняли, але це не зсуває лаги. Календарна прив’язка — наше пояснення, її теж можна уточнити.</div>
+
+<h2>Чому саме 13 398 позицій</h2>
+<p>Групу B вибрано за полем «Номенклатурна гр 3 рівень» = «Трактори». У каталозі всього 32 864 позиції:</p>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Група (рівень 3)</th><th class="num">Позицій</th></tr></thead>
+<tbody>
+<tr class="sel"><td><b>Трактори (наша група B)</b></td><td class="num"><b>13 398</b></td></tr>
+<tr><td>Комбайни</td><td class="num">7 955</td></tr>
+<tr><td>Двигуни</td><td class="num">3 914</td></tr>
+<tr><td>Обприскувачі</td><td class="num">2 607</td></tr>
+<tr><td>Причіпна техніка</td><td class="num">1 964</td></tr>
+<tr><td>Стандартні вироби</td><td class="num">1 102</td></tr>
+<tr><td>Спец Техніка</td><td class="num">897</td></tr>
+<tr><td>Фільтри</td><td class="num">488</td></tr>
+<tr><td>Паси</td><td class="num">479</td></tr>
+<tr><td>Інше (7 малих груп)</td><td class="num">60</td></tr>
+</tbody></table></div>
+<p class="small muted">Фільтри й паси «для тракторів» (≈ 311 позицій) лежать в інших групах. Ми їх не додаємо: межу групи не розширюємо.</p>
+
+<h3>Серії тракторів (рівень 2)</h3>
+<div class="tbl-wrap"><table id="series-table">
+<thead><tr><th>Серія</th><th class="num">Позицій</th><th class="num">Продано за 12 міс., од.</th><th class="num">Частка продажів</th></tr></thead><tbody></tbody></table></div>
+<p class="small muted">У джерелі є друкарська помилка «Трактрори 6B»; ми об’єднуємо її з «Трактори 6B». Серія 8 — половина позицій і ≈ 78% продажів: саме вона визначає результат групи.</p>
+
+<h2>Застереження щодо даних</h2>
+<div class="grid g2">
+  <div class="callout warn"><b>Порожнє ≠ нуль.</b> У 36-місячній історії 67 948 порожніх комірок (14%). Вони стоять на початку рядів: у частини позицій історії ще не було. Ми рахуємо їх як <i>невідомі</i>, а не як нульові продажі.</div>
+  <div class="callout warn"><b>Каталог росте.</b> У листопаді 2021 дані мають 8 295 позицій, у жовтні 2024 — 13 396. Частина зростання продажів — це поява позицій. Для чесного порівняння є <i>стала когорта</i> 8 295 позицій з повною історією.</div>
+  <div class="callout warn"><b>«Хіти» незрозумілі.</b> Сума хітів за рік — лише наближення до числа клієнтів. «Рівно 3» не доводить трьох клієнтів.</div>
+  <div class="callout warn"><b>Ціни без валюти.</b> Усі гроші на цих сторінках — «кількість × поточний прайс», в умовних одиницях. Це не виручка й не собівартість.</div>
+  <div class="callout warn"><b>Знімок, а не історія складу.</b> Залишок — на одну дату: фактичної оборотності й фактичного рівня сервісу з нього не вивести.</div>
+  <div class="callout warn"><b>Нестиковки.</b> 1 позиція з невідомим CC = 0; 72 позиції, де резерв більший за залишок; у 1 позиції в трьох місяцях є хіти за нульових продажів.</div>
+</div>
+
+<h2>Репозиторій колеги: що де лежить</h2>
+<p>У папці <code>agrosem_results/</code> лежить перша частина роботи. Нижче — навіщо кожен файл. На цих сторінках ми його числа не копіюємо, а відтворюємо з оригіналу й звіряємо.</p>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Файл</th><th>Що це</th><th>Корисно для</th></tr></thead>
+<tbody>
+<tr><td><code>01_План_і_ролі.md / .docx</code></td><td>План на 5 днів і розподіл на 5 ролей</td><td>Розподіл роботи. Він детальніший, ніж потрібно для 3 оцінюваних завдань</td></tr>
+<tr><td><code>02_Частина_1_аудит.md / .docx</code></td><td>Звіт про очищення даних і сегментацію</td><td>Деталі про якість даних</td></tr>
+<tr><td><code>03_АГРОСЕМ_B_дані_та_аудит.xlsx</code></td><td>26 аркушів: SKU, історія, сегменти, аудит</td><td>Перегляд у Excel; наш пошук нижче робить схоже в браузері</td></tr>
+<tr><td><code>data/*.csv</code></td><td>Таблиці для аналізу (історія, SKU, сегменти)</td><td>Дані для власних розрахунків</td></tr>
+<tr><td><code>build_agrosem_analysis.py</code></td><td>Код, що відтворює все з оригінального Excel</td><td>Ми використовуємо його функцію <code>build_data</code></td></tr>
+<tr><td><code>html/build_html_data.py</code></td><td><b>Наш</b> скрипт: збирає дані для цих сторінок із сирого Excel</td><td>Перевіряє контрольні суми й зупиняється, якщо не збігаються</td></tr>
+</tbody></table></div>
+<p class="small muted">Статус: колега виконав підготовку даних і аудит. Прогноз, COEFF і сценарії ще не пораховано, це наступні кроки на сторінках «3 Рахувати».</p>
+
+<div class="tool">
+  <span class="tool-badge">Інструмент</span>
+  <h3>Пошук і фільтр запчастин (13 398 позицій)</h3>
+  <p class="small muted">Знайдіть позицію або сегмент, відсортуйте, завантажте відфільтрований список у CSV. Кнопки «Швидкі зрізи» відкривають списки, про які говорять інші сторінки.</p>
+  <div class="controls" id="presets">
+    <span class="small muted">Швидкі зрізи:</span>
+    <button class="ghost" data-p="boundary">«Граничні»: сума хітів = 3</button>
+    <button class="ghost" data-p="crit0">CC 11/12 без залишку, але були продажі</button>
+    <button class="ghost" data-p="slow">Є залишок, продажів за 12 міс. немає</button>
+    <button class="ghost" data-p="resv">Резерв більший за залишок</button>
+    <button class="ghost" data-p="reset">Скинути</button>
+  </div>
+  <div class="controls">
+    <label class="field">Пошук (назва, вузол, код)<input id="f-q" type="search" placeholder="напр. фільтр"></label>
+    <label class="field">Серія<select id="f-series"></select></label>
+    <label class="field">Critical Code<select id="f-cc"></select></label>
+    <label class="field">IC<select id="f-ic"></select></label>
+    <label class="field">Повернення<select id="f-ret"><option value="">усі</option><option value="1">Retun (R)</option><option value="0">NO (E)</option></select></label>
+    <label class="field">Залишок<select id="f-stock"><option value="">усі</option><option value="0">нуль</option><option value="1">є</option></select></label>
+    <label class="field">Продажі за 12 міс.<select id="f-sales"><option value="">усі</option><option value="pos">є</option><option value="zero">немає</option><option value="unk">невідомо (неповна історія)</option></select></label>
+    <label class="field">Сума хітів за 12 міс.<select id="f-hits"><option value="">усі</option><option value="0-2">0–2</option><option value="3">рівно 3</option><option value="4-9">4–9</option><option value="10+">10 і більше</option></select></label>
+  </div>
+  <div id="f-sum" class="card small"></div>
+  <div class="tbl-wrap" style="margin-top:10px"><table id="f-table"><thead></thead><tbody></tbody></table></div>
+  <div class="controls">
+    <button id="prev" class="ghost">← Назад</button><span id="pageinfo" class="small"></span><button id="next" class="ghost">Далі →</button>
+    <button id="export" style="margin-left:auto">Завантажити відфільтроване (CSV)</button>
+  </div>
+  <p class="small muted">Хіти: у дужках максимум за один місяць. «Міс. даних» — скільки з 12 останніх місяців мають запис (менше 12 = неповна історія). Вартість = залишок × прайс, в умовних одиницях.</p>
+</div>
+
+<div id="pager"></div>
+</main>
+<script src="data/summary.js"></script>
+<script src="data/skus.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function () {
+  var S = AGRO.summary, K = AGRO.skus, C = {}; K.cols.forEach(function (n, i) { C[n] = i; });
+  var rows = K.rows;
+
+  /* таблиця серій */
+  var tot = S.series_table.reduce(function (a, s) { return a + s.sold12_u; }, 0);
+  document.querySelector('#series-table tbody').innerHTML = S.series_table.slice().sort(function (a, b) { return b.sold12_u - a.sold12_u; }).map(function (s) {
+    return '<tr><td>' + U.esc(s.series) + '</td><td class="num">' + U.fmtInt(s.sku_n) + '</td><td class="num">' + U.fmtInt(s.sold12_u) + '</td><td class="num">' + U.pct(s.sold12_u / tot, 1) + '</td></tr>';
+  }).join('');
+
+  /* випадаючі списки */
+  function opt(sel, vals, labelFn) {
+    U.el(sel).innerHTML = '<option value="">усі</option>' + vals.map(function (v) { return '<option value="' + U.esc(v) + '">' + U.esc(labelFn ? labelFn(v) : v) + '</option>'; }).join('');
+  }
+  function uniq(i) { var m = {}; rows.forEach(function (r) { m[r[i]] = 1; }); return Object.keys(m); }
+  opt('f-series', uniq(C.series).sort());
+  opt('f-cc', uniq(C.cc).map(Number).sort(function (a, b) { return a - b; }), function (v) { return v + ' · ' + (U.CC[v] ? U.CC[v][0] : ''); });
+  opt('f-ic', uniq(C.ic).sort());
+
+  var F = {}, sortCol = C.sold12, sortDir = -1, page = 0, PAGE = 50, filtered = [], preset = '';
+  function hitsSeg(r) {
+    var h = r[C.hits12]; if (h == null) return 'none';
+    return h <= 2 ? '0-2' : h === 3 ? '3' : h <= 9 ? '4-9' : '10+';
+  }
+  function readFilters() {
+    F = { q: U.el('f-q').value.trim().toLowerCase(), series: U.el('f-series').value, cc: U.el('f-cc').value, ic: U.el('f-ic').value,
+      ret: U.el('f-ret').value, stock: U.el('f-stock').value, sales: U.el('f-sales').value, hits: U.el('f-hits').value };
+  }
+  function pass(r) {
+    if (F.q && (r[C.name] + ' ' + r[C.subsystem] + ' ' + r[C.id8]).toLowerCase().indexOf(F.q) < 0) return false;
+    if (F.series && r[C.series] !== F.series) return false;
+    if (F.cc !== '' && String(r[C.cc]) !== F.cc) return false;
+    if (F.ic && r[C.ic] !== F.ic) return false;
+    if (F.ret !== '' && String(r[C.ret]) !== F.ret) return false;
+    if (F.stock === '0' && !(r[C.stock] === 0)) return false;
+    if (F.stock === '1' && !(r[C.stock] > 0)) return false;
+    var s = r[C.sold12];
+    if (F.sales === 'pos' && !(s > 0)) return false;
+    if (F.sales === 'zero' && s !== 0) return false;
+    if (F.sales === 'unk' && !(r[C.obs12] < 12)) return false;
+    if (preset === 'crit0' && !(r[C.cc] === 11 || r[C.cc] === 12)) return false;
+    if (preset === 'resv' && !(r[C.reserved] > r[C.stock])) return false;
+    if (F.hits && hitsSeg(r) !== F.hits) return false;
+    return true;
+  }
+  function apply() {
+    readFilters();
+    filtered = rows.filter(pass);
+    filtered.sort(function (a, b) {
+      var x = a[sortCol], y = b[sortCol];
+      if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      return (x < y ? -1 : x > y ? 1 : 0) * sortDir;
+    });
+    page = 0; render();
+  }
+  var HEAD = [['name', 'Назва'], ['series', 'Серія'], ['cc', 'CC'], ['ic', 'IC'], ['ret', 'Поверн.'], ['price', 'Прайс'], ['stock', 'Залишок'],
+    ['ordered', 'Замовл.'], ['reserved', 'Резерв'], ['sold12', 'Продано 12м'], ['hits12', 'Хіти 12м'], ['obs12', 'Міс. даних']];
+  U.el('f-table').querySelector('thead').innerHTML = '<tr>' + HEAD.map(function (h) {
+    return '<th class="' + (h[0] === 'name' || h[0] === 'series' ? '' : 'num') + '" data-c="' + h[0] + '" style="cursor:pointer" title="Сортувати">' + h[1] + '</th>'; }).join('') + '</tr>';
+  U.el('f-table').querySelector('thead').addEventListener('click', function (e) {
+    var c = e.target.getAttribute('data-c'); if (!c) return;
+    if (sortCol === C[c]) sortDir = -sortDir; else { sortCol = C[c]; sortDir = c === 'name' || c === 'series' ? 1 : -1; }
+    apply();
+  });
+  function render() {
+    var tb = U.el('f-table').querySelector('tbody'), a = page * PAGE, slice = filtered.slice(a, a + PAGE);
+    tb.innerHTML = slice.map(function (r) {
+      return '<tr><td>' + U.esc(r[C.name]) + '<div class="small muted">' + U.esc(r[C.subsystem]) + ' · ' + r[C.id8] + '</div></td><td>' + U.esc(r[C.series]) + '</td>' +
+        '<td class="num">' + r[C.cc] + '</td><td class="num">' + r[C.ic] + '</td><td class="num">' + (r[C.ret] ? 'R' : 'E') + '</td>' +
+        '<td class="num">' + U.fmt2(r[C.price]) + '</td><td class="num">' + U.fmtInt(r[C.stock]) + '</td><td class="num">' + U.fmtInt(r[C.ordered]) + '</td><td class="num">' + U.fmtInt(r[C.reserved]) + '</td>' +
+        '<td class="num">' + (r[C.sold12] == null ? '—' : U.fmtInt(r[C.sold12])) + '</td>' +
+        '<td class="num">' + (r[C.hits12] == null ? '—' : U.fmtInt(r[C.hits12]) + ' (' + r[C.hitsMax] + ')') + '</td><td class="num">' + r[C.obs12] + '</td></tr>';
+    }).join('') || '<tr><td colspan="12" class="muted">Нічого не знайдено.</td></tr>';
+    var pages = Math.max(1, Math.ceil(filtered.length / PAGE));
+    U.el('pageinfo').textContent = 'Сторінка ' + (page + 1) + ' з ' + pages;
+    U.el('prev').disabled = page === 0; U.el('next').disabled = page >= pages - 1;
+    var stockV = 0, soldV = 0, soldU = 0, stockU = 0;
+    filtered.forEach(function (r) { stockV += r[C.stock] * r[C.price]; stockU += r[C.stock]; if (r[C.sold12] != null) { soldV += r[C.sold12] * r[C.price]; soldU += r[C.sold12]; } });
+    U.el('f-sum').innerHTML = 'Знайдено <b>' + U.fmtInt(filtered.length) + '</b> з ' + U.fmtInt(rows.length) + ' позицій · залишок <b>' + U.fmtInt(stockU) + '</b> од. на <b>' + U.fmtInt(stockV) +
+      '</b> · продано за 12 міс. <b>' + U.fmtInt(soldU) + '</b> од. на <b>' + U.fmtInt(soldV) + '</b> (умовні одиниці прайсу)';
+  }
+  U.el('prev').onclick = function () { page--; render(); };
+  U.el('next').onclick = function () { page++; render(); };
+
+  var IDS = ['f-q', 'f-series', 'f-cc', 'f-ic', 'f-ret', 'f-stock', 'f-sales', 'f-hits'];
+  function setAll(v) { IDS.forEach(function (id) { U.el(id).value = v[id] || ''; }); }
+  U.el('presets').addEventListener('click', function (e) {
+    var p = e.target.getAttribute('data-p'); if (!p) return;
+    preset = '';
+    if (p === 'boundary') setAll({ 'f-hits': '3' });
+    else if (p === 'slow') setAll({ 'f-stock': '1', 'f-sales': 'zero' });
+    else if (p === 'crit0') { setAll({ 'f-stock': '0', 'f-sales': 'pos' }); preset = 'crit0'; }
+    else if (p === 'resv') { setAll({}); preset = 'resv'; }
+    else setAll({});
+    sortCol = C.sold12; sortDir = -1;
+    apply();
+  });
+  /* ручна зміна будь-якого фільтра скасовує «швидкий зріз» */
+  IDS.forEach(function (id) { U.el(id).addEventListener('input', function () { preset = ''; apply(); }); });
+
+  U.el('export').onclick = function () {
+    var head = K.cols.join(';'), lines = filtered.map(function (r) { return r.map(function (v) { return v == null ? '' : String(v).replace(/;/g, ',').replace(/\n/g, ' '); }).join(';'); });
+    U.download('agrosem_trakt_filtr.csv', head + '\n' + lines.join('\n'));
+  };
+  apply();
+})();
+</script>
+</body>
+</html>
