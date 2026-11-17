@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "tests_run": 13,
+  "failures": 0,
+  "errors": 0,
+  "economic_task_status": "INCOMPLETE_MISSING_INPUTS",
+  "scope": "Observed arithmetic, source preservation, missing targets, no invented lead times or forecast extension; not economic task completion."
+}

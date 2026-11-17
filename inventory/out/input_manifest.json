@@ -1,0 +1,22 @@
+{
+  "inputs\\12_11_2024_140029.xlsx": {
+    "sha256": "de1aa67123a5e6779b15bec7958d32230fa89ce34ae1e6778fda2937a3fb9c55",
+    "bytes": 9768713
+  },
+  "inputs\\АГРОСЕМ_case.pdf": {
+    "sha256": "1802c4df424913d8ab6f336f4967ecad3bd6513dfb38f0ff54e0b185fdf16628",
+    "bytes": 1521917
+  },
+  "agrosem_results\\data\\sku_master.csv": {
+    "sha256": "3dc54a7d8e4e35ac5372bdee3d27573339038b909e4fca32a74e660f7f2ed022",
+    "bytes": 5685394
+  },
+  "forecast\\out\\forecast_group_FY2025.csv": {
+    "sha256": "ffbeb0f7653c532931d936ea79960ac9d40bb6237478d69014247067da00656b",
+    "bytes": 1000
+  },
+  "forecast\\out\\forecast_SKU_FY2025.csv": {
+    "sha256": "0aed01ee3b9204fcb8a2aad2b432a46aa9366539c0c08b6eff3fac2ea06b5474",
+    "bytes": 2567727
+  }
+}
